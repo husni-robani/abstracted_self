@@ -3,9 +3,9 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"log"
 
 	"github.com/husni-robani/abstracted_self/backend/internal/config"
+	"github.com/husni-robani/abstracted_self/backend/internal/logger"
 	_ "github.com/lib/pq"
 )
 
@@ -19,7 +19,7 @@ func Connect(cfg *config.Config) (*sql.DB, error) {
 		return nil, err
 	}
 
-	log.Default().Printf("Database Connected!")
+	logger.Info.Println("Database Connected!")
 
 	return db, nil
 }
