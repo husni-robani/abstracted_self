@@ -10,12 +10,14 @@ import (
 )
 
 func Connect(cfg *config.Config) (*sql.DB, error) {
-	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-	cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPassword, cfg.DBName)
+	connStr := fmt.Sprintf("user=%s dbname=%s host=%s sslmode=disable password=%s", cfg.DBUser, cfg.DBName, cfg.DBHost, cfg.DBPassword)
 
 	db, err := sql.Open("postgres", connStr)
-	
 	if err != nil {
+		return nil, err
+	}
+
+	if err := db.Ping(); err != nil {
 		return nil, err
 	}
 
