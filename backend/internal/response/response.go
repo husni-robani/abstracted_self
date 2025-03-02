@@ -18,6 +18,7 @@ func Success(c *gin.Context, httpCode int, message string, data any) {
 
 func Error(c *gin.Context, httpCode int, message string, errors any) {
 	payload := response{
+		Message: message,
 		Errors: errors,
 	}
 
