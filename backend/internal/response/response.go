@@ -16,7 +16,7 @@ func Success(c *gin.Context, httpCode int, message string, data any) {
 	c.JSON(httpCode, payload)
 }
 
-func Error(c *gin.Context, httpCode int, errors any) {
+func Error(c *gin.Context, httpCode int, message string, errors any) {
 	payload := response{
 		Errors: errors,
 	}
