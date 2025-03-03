@@ -1,12 +1,12 @@
 # .air.toml
-root = "./cmd" 
+root = "." 
 tmp_dir = "tmp"
 
 [build]
 cmd = "go build -o ./tmp/main ./cmd/main.go"  # Replace with the correct path to your main.go
 bin = "tmp/main"
 full_bin = "./tmp/main"
-include_ext = ["go", "tpl", "tmpl", "html"]
+include_ext = ["go", "tpl", "tmpl", "html", "env"]
 exclude_dir = ["assets", "tmp", "vendor", "testdata"]
 include_dir = []
 exclude_regex = ["_test.go"]
