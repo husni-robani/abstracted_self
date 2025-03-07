@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 
+	"github.com/husni-robani/abstracted_self/backend/internal/logger"
 	"github.com/joho/godotenv"
 )
 
@@ -18,6 +19,8 @@ type Config struct {
 func LoadConfig() (*Config, error) {
 	err := godotenv.Load()
 	if err != nil {
+		logger.Error.Printf("failed to load ENV: %v", err)
+		os.Exit(0)
 		return nil, err
 	}
 
