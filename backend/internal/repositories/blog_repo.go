@@ -2,9 +2,11 @@ package repositories
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
 	"github.com/husni-robani/abstracted_self/backend/internal/models"
+	"github.com/husni-robani/abstracted_self/backend/internal/utils"
 )
 
 type BlogRepository struct {
@@ -65,9 +67,48 @@ func (repo BlogRepository) CreateBlog(blog models.Blog) error {
 	totalRowsAffected, err := result.RowsAffected()
 	if err != nil {
 		logger.Error.Printf("error get total rows affected: %#v", err.Error())
+		return err
 	}
 
 	logger.Info.Printf("row affected: %v", totalRowsAffected)
+
+	return nil
+}
+
+func (repo BlogRepository) DeleteBlog(id int) error {
+	result, err := repo.db.Exec("DELETE FROM blogs where id = $1", id)
+	if err != nil {
+		 logger.Error.Printf("error delete blog: %v", err.Error())
+		 return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		logger.Error.Printf("error get total rows affected: %v", err.Error())
+		return err
+	}
+
+	logger.Info.Printf("row affected: %v", rowsAffected)
+	
+	return nil
+}
+
+func (repo BlogRepository) UpdateBlog(id int, updateValues map[string]any) error {
+	query := utils.GenerateSingleUpdateQuery("blogs", updateValues, fmt.Sprintf("where id = %d", id))
+
+	result, err := repo.db.Exec(query)
+	if err != nil {
+		logger.Error.Printf("error exec query update: %s\n query: %s", err.Error(), query)
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		logger.Error.Printf("error get row affected: %s", err.Error())
+		return err
+	}
+
+	logger.Info.Printf("Row affected: %v", rowsAffected)
 
 	return nil
 }
