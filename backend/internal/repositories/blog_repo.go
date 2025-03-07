@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
 	"github.com/husni-robani/abstracted_self/backend/internal/models"
 	"github.com/husni-robani/abstracted_self/backend/internal/utils"
@@ -56,7 +57,7 @@ func (repo BlogRepository) GetBlogByID(id int) (models.Blog, error) {
 	return blog, nil
 }
 
-func (repo BlogRepository) CreateBlog(blog models.Blog) error {
+func (repo BlogRepository) CreateBlog(blog requests.CreateBlogRequest) error {
 	result, err := repo.db.Exec("INSERT INTO blogs (title, url, image) VALUES ($1, $2, $3)", blog.Title, blog.URL, blog.Image)
 	if err != nil {
 		logger.Error.Printf("error insert blog: %#v", err.Error())

@@ -10,7 +10,6 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
-	"github.com/husni-robani/abstracted_self/backend/internal/models"
 	"github.com/husni-robani/abstracted_self/backend/internal/response"
 	"github.com/husni-robani/abstracted_self/backend/internal/services"
 	"github.com/husni-robani/abstracted_self/backend/internal/utils"
@@ -66,7 +65,7 @@ func (handler BlogHandler) GetBlogByID(c *gin.Context) {
 
 func (handler BlogHandler) CreateBlog(c *gin.Context){	
 	// get request body
-	var blogData models.Blog
+	var blogData requests.CreateBlogRequest
 	if err := c.ShouldBind(&blogData); err != nil {
 		logger.Error.Printf("error binding request body: %v", err.Error())
 		response.Error(c, http.StatusInternalServerError, "create blog failed", nil)
@@ -164,11 +163,17 @@ func (blogHandler BlogHandler) UpdateBlog(c *gin.Context){
 			return
 		}
 	}
-	updatedBlog, err := blogHandler.Service.UpdateBlog(id, req)
 
+	updatedBlog, err := blogHandler.Service.UpdateBlog(id, req)
 	if err != nil {
-		response.Error(c, http.StatusInternalServerError, "update blog failed", nil)
-		return
+		// error not found
+		if errors.Is(err, sql.ErrNoRows){
+			response.Error(c, http.StatusNotFound, "blog not found", nil)
+			return
+		}else {
+			response.Error(c, http.StatusInternalServerError, "internal server error", nil)
+			return
+		}
 	}
 	
 	response.Success(c, http.StatusOK, "update blog successful", updatedBlog)

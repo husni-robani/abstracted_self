@@ -38,7 +38,7 @@ func (service BlogService) GetBlogByID(id int) (models.Blog, error) {
 	return blog, nil
 }
 
-func (service BlogService) CreateBlog(blog models.Blog) error {
+func (service BlogService) CreateBlog(blog requests.CreateBlogRequest) error {
 	// change filename
 	extension := filepath.Ext(blog.ImageFile.Filename)
 	newFilename := uuid.New().String() + extension
@@ -82,7 +82,6 @@ func (service BlogService) DeleteBlog(id int) error {
 func (service BlogService) UpdateBlog(id int, newBlogData requests.UpdateBlogRequest) (*models.Blog, error) {
 	blog, err := service.Repository.GetBlogByID(id)
 	if err != nil {
-		logger.Error.Printf("error while get blog data: %v", err)
 		return nil, err
 	}
 
