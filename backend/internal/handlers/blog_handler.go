@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
 	"github.com/husni-robani/abstracted_self/backend/internal/models"
 	"github.com/husni-robani/abstracted_self/backend/internal/response"
@@ -76,7 +77,7 @@ func (handler BlogHandler) CreateBlog(c *gin.Context){
 	file, err := c.FormFile("file")
 	if err != nil {
 		logger.Error.Printf("error file data: %v", err.Error())	
-		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
+		response.Error(c, http.StatusInternalServerError, "create blog failed", nil)
 		return
 	}
 	blogData.ImageFile = file
@@ -112,7 +113,7 @@ func (handler BlogHandler) CreateBlog(c *gin.Context){
 
 	err = handler.Service.CreateBlog(blogData)
 	if err != nil {
-		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
+		response.Error(c, http.StatusInternalServerError, "create blog failed", nil)
 		return
 	}
 
@@ -120,9 +121,55 @@ func (handler BlogHandler) CreateBlog(c *gin.Context){
 }
 
 func (handler BlogHandler) DeleteBlog(c *gin.Context){
-	// 
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		logger.Error.Printf("error converting id: %v", err)
+		response.Error(c, http.StatusBadRequest, "invalid id", err)
+		return
+	}
+
+	if err := handler.Service.DeleteBlog(id); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			response.Error(c, http.StatusNotFound, "blog not found", nil)
+			return	
+		}else {
+			response.Error(c, http.StatusInternalServerError, "delete blog failed", nil)
+			return
+		}
+	}
+
+	response.Success(c, http.StatusOK, "delete blog successfully", nil)
 }
 
 func (blogHandler BlogHandler) UpdateBlog(c *gin.Context){
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		logger.Error.Printf("error converting id: %v", err.Error())
+		response.Error(c, http.StatusBadRequest, "invalid id", err.Error())
+		return
+	}
 
+	var req requests.UpdateBlogRequest
+	if err := c.ShouldBind(&req); err != nil {
+		logger.Error.Printf("error binding request body: %v", err)
+		response.Error(c, http.StatusInternalServerError, "update blog failed", nil)
+		return
+	}
+
+	// validate image
+	if req.ImageFile != nil {
+		if err := utils.ValidateFile(req.ImageFile, []string{"image/jpeg", "image/png"}, 300 << 10); err != nil{
+			logger.Error.Printf("invalid image file: %v", err)
+			response.Error(c, http.StatusBadRequest, "invalid image", err.Error())
+			return
+		}
+	}
+	updatedBlog, err := blogHandler.Service.UpdateBlog(id, req)
+
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "update blog failed", nil)
+		return
+	}
+	
+	response.Success(c, http.StatusOK, "update blog successful", updatedBlog)
 }
