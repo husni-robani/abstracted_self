@@ -15,6 +15,8 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 	router.GET("/blogs", handler.BlogHandler.GetBlogs)
 	router.GET("/blogs/:id", handler.BlogHandler.GetBlogByID)
 	router.POST("/blogs", handler.BlogHandler.CreateBlog)
+	router.DELETE("/blogs/:id", handler.BlogHandler.DeleteBlog)
+	router.PATCH("/blogs/:id", handler.BlogHandler.UpdateBlog)
 
 	return router
 }
