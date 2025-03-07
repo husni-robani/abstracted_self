@@ -57,3 +57,21 @@ func ValidateFile(fileHeader *multipart.FileHeader, validTypes []string, maxSize
 
 	return nil
 }
+
+func GenerateSingleUpdateQuery(tableName string, values map[string]any, condition string) string {
+	query := fmt.Sprintf("UPDATE %s SET",tableName)
+
+	i := 0
+	for column, value := range values{
+		i++
+		if i == len(values) {
+			query += fmt.Sprintf(" %s = '%s' ", column, value)	
+			break
+		}
+		query += fmt.Sprintf(" %s = '%s',", column, value)
+	}
+
+	query += condition
+
+	return query
+}
