@@ -2,5 +2,5 @@ package models
 
 type TechnologyType struct {
 	Id string `json:"id"`
-	Type string `json:"type"`
+	TypeName string `json:"type_name"`
 }
