@@ -7,6 +7,7 @@ import (
 	"mime/multipart"
 	"os"
 	"slices"
+	"strings"
 
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
 )
@@ -74,4 +75,9 @@ func GenerateSingleUpdateQuery(tableName string, values map[string]any, conditio
 	query += condition
 
 	return query
+}
+
+func GetToken(bearerToken string) string {
+	bearerSplitted := strings.Split(bearerToken, " ")
+	return bearerSplitted[1]
 }
