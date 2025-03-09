@@ -13,9 +13,9 @@ import (
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenString := utils.GetToken(c.GetHeader("Authorization"))
+		tokenString, err := utils.GetToken(c.GetHeader("Authorization"))
 
-		if tokenString != os.Getenv("AUTH_TOKEN") {
+		if err != nil || tokenString != os.Getenv("AUTH_TOKEN") {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"message": "Access denied",
 			})
