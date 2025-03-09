@@ -10,6 +10,7 @@ import (
 type Handlers struct {
 	BlogHandler *BlogHandler
 	AuthHandler *AuthHandler
+	TechnologyTypeHandler *TechnologyTypeHandler
 }
 
 func SetupHandler(db *sql.DB) Handlers {
@@ -20,8 +21,13 @@ func SetupHandler(db *sql.DB) Handlers {
 	authService := services.NewAuthService()
 	authHandler := NewAuthHandler(authService)
 
+	techTypeRepo := repositories.NewTechnologyTypeRepository(db)
+	techTypeService := services.NewTechnologyTypeService(techTypeRepo)
+	techTypeHandler := NewTechnologyTypeHandler(techTypeService)
+
 	return Handlers{
 		BlogHandler: &blogHandler,
 		AuthHandler: &authHandler,
+		TechnologyTypeHandler: &techTypeHandler,
 	}
 }

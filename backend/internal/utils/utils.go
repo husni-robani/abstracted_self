@@ -77,7 +77,12 @@ func GenerateSingleUpdateQuery(tableName string, values map[string]any, conditio
 	return query
 }
 
-func GetToken(bearerToken string) string {
+func GetToken(bearerToken string) (string, error) {
 	bearerSplitted := strings.Split(bearerToken, " ")
-	return bearerSplitted[1]
+
+	if len(bearerSplitted) != 2 {
+		return "", fmt.Errorf("invalid token")
+	}
+
+	return bearerSplitted[1], nil
 }
