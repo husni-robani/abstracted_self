@@ -6,9 +6,11 @@ import (
 	"io"
 	"mime/multipart"
 	"os"
+	"reflect"
 	"slices"
 	"strings"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
 )
 
@@ -85,4 +87,30 @@ func GetToken(bearerToken string) (string, error) {
 	}
 
 	return bearerSplitted[1], nil
+}
+
+func ValidateStruct(structInstance any) (map[string]string, error) {
+	argumentType := reflect.ValueOf(structInstance)
+
+	if argumentType.Kind() != reflect.Struct {
+		return nil, fmt.Errorf("failed validate struct: invalid argument (expected struct)")
+	}
+
+	// validation process
+	invalidFields :=  map[string]string{}
+
+	validate := validator.New(validator.WithRequiredStructEnabled())
+	err := validate.Struct(structInstance)
+	if err != nil {
+		var validateErrs validator.ValidationErrors
+		if errors.As(err, &validateErrs){
+			for _, e := range validateErrs {
+				invalidFields[e.Field()] = e.ActualTag()
+			}
+		}else {
+			return nil, err
+		}
+	}
+
+	return invalidFields, nil
 }
