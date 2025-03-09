@@ -24,6 +24,13 @@ func LoadConfig() (*Config, error) {
 		return nil, err
 	}
 
+	err = godotenv.Load(".env.user_credential")
+	if err != nil {
+		logger.Error.Printf("failed load USER ENV: %v", err)
+		os.Exit(0)
+		return nil, err
+	}
+
 	return &Config{
 		ServerPort: os.Getenv("SERVER_PORT"),
 		DBHost: os.Getenv("DB_HOST"),
