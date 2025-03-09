@@ -9,6 +9,7 @@ import (
 
 type Handlers struct {
 	BlogHandler *BlogHandler
+	AuthHandler *AuthHandler
 }
 
 func SetupHandler(db *sql.DB) Handlers {
@@ -16,7 +17,11 @@ func SetupHandler(db *sql.DB) Handlers {
 	blogService := services.NewBlogService(blogRepo)
 	blogHandler := NewBlogHandler(blogService)
 
+	authService := services.NewAuthService()
+	authHandler := NewAuthHandler(authService)
+
 	return Handlers{
 		BlogHandler: &blogHandler,
+		AuthHandler: &authHandler,
 	}
 }
