@@ -72,43 +72,32 @@ func (handler BlogHandler) CreateBlog(c *gin.Context){
 		return
 	}
 
-	// get image file
-	file, err := c.FormFile("file")
+	invalidFieldErrors, err := utils.ValidateStruct(blogData)
 	if err != nil {
-		logger.Error.Printf("error file data: %v", err.Error())	
-		response.Error(c, http.StatusInternalServerError, "create blog failed", nil)
+		logger.Error.Println(err)
+		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
 		return
 	}
-	blogData.ImageFile = file
-	logger.Info.Printf("file received: %s\n", file.Filename)
 
-
-	invalidFieldErrors := map[string]string{}
-	// validate file
-	if err := utils.ValidateFile(blogData.ImageFile, []string{"image/jpeg", "image/png"}, 300 << 10); err != nil{
-		invalidFieldErrors["file"] = err.Error()
-	}
-	// validate request body
-	if err := handler.Validator.Struct(blogData); err != nil{
-		var validateErrs validator.ValidationErrors
-		if errors.As(err, &validateErrs) {
-			for _, e := range validateErrs {
-				invalidFieldErrors[e.Field()] = e.ActualTag()
-			}
-		}else {
-			logger.Error.Printf("Invalid request data: %v", err.Error())
-			response.Error(c, http.StatusBadRequest, "invalid data", err)
-			return
+	// get and validate image
+	file, err := c.FormFile("file")
+	if err != nil {
+		invalidFieldErrors["image"] = "required"
+	}else {
+		blogData.ImageFile = file
+		logger.Info.Printf("file received: %s\n", file.Filename)
+		
+		if err := utils.ValidateFile(blogData.ImageFile, []string{"image/jpeg", "image/png"}, 300 << 10); err != nil{
+			invalidFieldErrors["image"] = err.Error()
 		}
 	}
 
-	if len(invalidFieldErrors) >= 1{
-		logger.Error.Printf("Invalid request data: %v", invalidFieldErrors)
+	// return all validation errors
+	if len(invalidFieldErrors) >= 1 {
+		logger.Info.Printf("invalid body request: %v", invalidFieldErrors)
 		response.Error(c, http.StatusBadRequest, "invalid data", invalidFieldErrors)
 		return
 	}
-
-	
 
 	err = handler.Service.CreateBlog(blogData)
 	if err != nil {
