@@ -86,3 +86,76 @@ func (repo TechnologyTypeRepository) DeleteType(id int) error {
 	logger.Info.Printf("Rows affected: %v", totalRowAffected)
 	return nil
 }
+
+type TypeWithTechnologies struct {
+	TypeId int
+	TypeName string
+	TechID int
+	TechName string
+}
+
+func (repo TechnologyTypeRepository) GetTypesWithTechnologies() ([]models.TechnologyType, error) {
+	query := "SELECT tt.id, tt.type_name, t.id, t.name FROM technology_types tt JOIN technologies t ON tt.id = t.type_id"
+	var typeTechs []TypeWithTechnologies
+
+	rows, err := repo.db.Query(query)
+	if err != nil {
+		logger.Error.Printf("faield select query: %#v", err)
+		return nil, err
+	}
+
+	for rows.Next(){
+		var typeTech TypeWithTechnologies
+		err := rows.Scan(&typeTech.TypeId, &typeTech.TypeName, &typeTech.TechID, &typeTech.TechName)
+		if err != nil {
+			logger.Error.Printf("failed scan row: %v", err)
+			return nil, err
+		}
+
+		typeTechs = append(typeTechs, typeTech)
+	}
+
+	var technologyTypes []models.TechnologyType
+	for i, v := range typeTechs {
+		var technologyType models.TechnologyType
+		if i == 0 {
+			technologyType = models.TechnologyType{
+				Id: v.TypeId,
+				TypeName: v.TypeName,
+				Technologies: []models.Technology{
+					{
+						Id: v.TechID,
+						Name: v.TechName,
+					},
+				},
+			}
+
+			technologyTypes = append(technologyTypes, technologyType)
+			continue
+		}
+
+		if technologyTypes[len(technologyTypes) - 1].Id != v.TypeId {
+			technologyType = models.TechnologyType{
+				Id: v.TypeId,
+				TypeName: v.TypeName,
+				Technologies: []models.Technology{
+					{
+						Id: v.TechID,
+						Name: v.TechName,
+					},
+				},
+			}
+
+			technologyTypes = append(technologyTypes, technologyType)
+			continue
+		}
+
+		technologyTypes[len(technologyTypes) - 1].Technologies = append(technologyTypes[len(technologyTypes)-1].Technologies, models.Technology{
+			Id: v.TechID,
+			Name: v.TechName,
+		})
+
+	}
+	
+	return technologyTypes, nil
+}

@@ -39,3 +39,12 @@ func (service TechnologyTypeService) DeleteTypeByID(id int) error {
 
 	return nil
 }
+
+func (service TechnologyTypeService) GetAllTypesWithTechnologies() ([]models.TechnologyType, error) {
+	techTypeWithTechnologies, err := service.repository.GetTypesWithTechnologies()
+	if err != nil {
+		return nil, err
+	}
+
+	return techTypeWithTechnologies, nil
+}

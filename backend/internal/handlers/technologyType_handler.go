@@ -80,3 +80,13 @@ func (handler TechnologyTypeHandler) DeleteTypeByID(c *gin.Context) {
 
 	response.Success(c, http.StatusOK, "delete technology type successful", nil)
 }
+
+func (handler TechnologyTypeHandler) GetTypesWithTechnologies(c *gin.Context) {
+	techTypesWithTechnologies, err := handler.service.GetAllTypesWithTechnologies()
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
+		return
+	}
+
+	response.Success(c, http.StatusOK, "get all technology type with technologies successful", techTypesWithTechnologies)
+}
