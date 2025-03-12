@@ -11,7 +11,6 @@ import (
 
 // error in package
 var ErrInvalidCredetials = errors.New("invalid credentials")
-const Test = "Uyy"
 
 type AuthService struct{}
 
