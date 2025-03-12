@@ -19,6 +19,9 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 	router.GET("/blogs/:id", handler.BlogHandler.GetBlogByID)
 
 	router.GET("/tech_types", handler.TechnologyTypeHandler.GetTypes)
+	router.GET("/tech_types_technologies", handler.TechnologyTypeHandler.GetTypesWithTechnologies)
+
+	router.GET("/technologies", handler.TechnologyHandler.GetTechnologies)
 
 	authorizedRouter := router.Group("")
 	authorizedRouter.Use(auth.AuthMiddleware())
@@ -31,6 +34,9 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 
 		authorizedRouter.POST("/tech_types", handler.TechnologyTypeHandler.CreateTypes)
 		authorizedRouter.DELETE("/tech_types/:id", handler.TechnologyTypeHandler.DeleteTypeByID)
+
+		authorizedRouter.POST("/technologies", handler.TechnologyHandler.CreateTechnologies)
+		authorizedRouter.DELETE("/technologies/:id", handler.TechnologyHandler.DeleteTechnology)
 	}
 
 	return router
