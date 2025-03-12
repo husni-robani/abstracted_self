@@ -90,12 +90,12 @@ func (repo TechnologyTypeRepository) DeleteType(id int) error {
 type TypeWithTechnologies struct {
 	TypeId int
 	TypeName string
-	TechID int
-	TechName string
+	TechID sql.NullInt64
+	TechName sql.NullString
 }
 
 func (repo TechnologyTypeRepository) GetTypesWithTechnologies() ([]models.TechnologyType, error) {
-	query := "SELECT tt.id, tt.type_name, t.id, t.name FROM technology_types tt JOIN technologies t ON tt.id = t.type_id"
+	query := "SELECT tt.id, tt.type_name, t.id, t.name FROM technology_types tt LEFT JOIN technologies t ON tt.id = t.type_id"
 	var typeTechs []TypeWithTechnologies
 
 	rows, err := repo.db.Query(query)
@@ -119,15 +119,23 @@ func (repo TechnologyTypeRepository) GetTypesWithTechnologies() ([]models.Techno
 	for i, v := range typeTechs {
 		var technologyType models.TechnologyType
 		if i == 0 {
-			technologyType = models.TechnologyType{
-				Id: v.TypeId,
-				TypeName: v.TypeName,
-				Technologies: []models.Technology{
-					{
-						Id: v.TechID,
-						Name: v.TechName,
+			if v.TechID.Valid {
+				technologyType = models.TechnologyType{
+					Id: v.TypeId,
+					TypeName: v.TypeName,
+					Technologies: []models.Technology{
+						{
+							Id: int(v.TechID.Int64),
+							Name: v.TechName.String,
+						},
 					},
-				},
+				}
+			}else {
+				technologyType = models.TechnologyType{
+					Id: v.TypeId,
+					TypeName: v.TypeName,
+					Technologies: nil,
+				}
 			}
 
 			technologyTypes = append(technologyTypes, technologyType)
@@ -140,8 +148,8 @@ func (repo TechnologyTypeRepository) GetTypesWithTechnologies() ([]models.Techno
 				TypeName: v.TypeName,
 				Technologies: []models.Technology{
 					{
-						Id: v.TechID,
-						Name: v.TechName,
+						Id: int(v.TechID.Int64),
+						Name: v.TechName.String,
 					},
 				},
 			}
@@ -151,8 +159,8 @@ func (repo TechnologyTypeRepository) GetTypesWithTechnologies() ([]models.Techno
 		}
 
 		technologyTypes[len(technologyTypes) - 1].Technologies = append(technologyTypes[len(technologyTypes)-1].Technologies, models.Technology{
-			Id: v.TechID,
-			Name: v.TechName,
+			Id: int(v.TechID.Int64),
+			Name: v.TechName.String,
 		})
 
 	}
