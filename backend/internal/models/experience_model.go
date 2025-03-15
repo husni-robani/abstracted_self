@@ -8,5 +8,5 @@ type Experience struct {
 	StartDate string `json:"start_date"`
 	EndDate string `json:"end_date"`
 	Description string `json:"description"`
-	Accomplishment string `json:"accomplishment"`
+	Accomplishments []string `json:"accomplishments"`
 }
