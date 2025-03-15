@@ -23,6 +23,8 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 
 	router.GET("/technologies", handler.TechnologyHandler.GetTechnologies)
 
+	router.GET("/experiences", handler.ExperienceHandler.GetExperiences)
+
 	authorizedRouter := router.Group("")
 	authorizedRouter.Use(auth.AuthMiddleware())
 	{
