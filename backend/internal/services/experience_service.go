@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
 	"github.com/husni-robani/abstracted_self/backend/internal/models"
 	"github.com/husni-robani/abstracted_self/backend/internal/repositories"
 )
@@ -22,4 +23,12 @@ func (service ExperienceService) GetAllExperiences() ([]models.Experience, error
 	}
 
 	return experiences, nil 
+}
+
+func (service ExperienceService) CreateExperience(experience requests.CreateExperienceRequest) error {
+	if err := service.repo.CreateExperience(experience); err != nil {
+		return err
+	}
+
+	return nil
 }
