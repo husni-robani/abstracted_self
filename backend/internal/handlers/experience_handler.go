@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"database/sql"
+	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -106,4 +109,26 @@ func (handler ExperienceHandler) UpdateExperience(c *gin.Context) {
 	
 	// return response success
 	response.Success(c, http.StatusOK, "update experience successful", nil)
+}
+
+func (handler ExperienceHandler) GetExperienceById(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		logger.Error.Printf("failed to convert id to int: %v", err)
+		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
+		return
+	}
+
+	experience, err := handler.service.GetExperienceById(id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			response.Error(c, http.StatusNotFound, fmt.Sprintf("experience with id %v not found", id), nil)
+			return 
+		}
+
+		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
+		return
+	}
+
+	response.Success(c, http.StatusOK, "get experience successful", experience)
 }

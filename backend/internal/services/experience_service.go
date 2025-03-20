@@ -83,3 +83,12 @@ func (service ExperienceService) UpdateExperience(id int, experience requests.Up
 
 	return nil
 }
+
+func (service ExperienceService) GetExperienceById(id int) (models.Experience, error){
+	experience, err := service.repo.GetExperienceById(id)
+	if err != nil {
+		return experience, err
+	}
+
+	return experience, nil
+}

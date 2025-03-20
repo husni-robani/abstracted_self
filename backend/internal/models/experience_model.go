@@ -3,7 +3,7 @@ package models
 import "time"
 
 type Experience struct {
-	Id int `json:"id"`
+	Id int `json:"id,omitempty"`
 	JobTitle string `json:"job_title"`
 	CompanyName string `json:"company_name"`
 	WorkPlace string `json:"work_place"`
