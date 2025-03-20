@@ -92,3 +92,11 @@ func (service ExperienceService) GetExperienceById(id int) (models.Experience, e
 
 	return experience, nil
 }
+
+func (service ExperienceService) DeleteExperience(id int) error {
+	if err := service.repo.DeleteExperience(id); err != nil {
+		return err
+	}
+
+	return nil
+}

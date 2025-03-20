@@ -132,3 +132,19 @@ func (handler ExperienceHandler) GetExperienceById(c *gin.Context) {
 
 	response.Success(c, http.StatusOK, "get experience successful", experience)
 }
+
+func (handler ExperienceHandler) DeleteExperience(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		logger.Error.Printf("failed to convert id to int: %v", err)
+		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
+		return
+	}
+
+	if err := handler.service.DeleteExperience(id); err != nil {
+		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
+		return
+	}
+
+	response.Success(c, http.StatusOK, "delete experience successful", nil)
+}

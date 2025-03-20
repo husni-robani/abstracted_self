@@ -100,3 +100,21 @@ func (repo ExperienceRepo) GetExperienceById(id int) ( models.Experience, error)
 
 	return experience, nil
 }
+
+func (repo ExperienceRepo) DeleteExperience(id int) error {
+	result, err := repo.db.Exec("DELETE FROM experiences WHERE id = $1", id)
+	if err != nil {
+		logger.Error.Printf("failed exec query delete experience: %v", err.Error())
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		logger.Error.Printf("failed to get total of rows affected: %v", err.Error())
+		return err
+	}
+
+	logger.Info.Printf("rows affected: %v", rowsAffected)
+
+	return nil
+}

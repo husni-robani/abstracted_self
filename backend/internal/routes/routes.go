@@ -43,6 +43,7 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 
 		authorizedRouter.POST("/experiences", handler.ExperienceHandler.CreateExperience)
 		authorizedRouter.PATCH("/experiences/:id", handler.ExperienceHandler.UpdateExperience)
+		authorizedRouter.DELETE("/experiences/:id", handler.ExperienceHandler.DeleteExperience)
 	}
 
 	return router
