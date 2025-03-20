@@ -2,10 +2,12 @@ package repositories
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
 	"github.com/husni-robani/abstracted_self/backend/internal/models"
+	"github.com/husni-robani/abstracted_self/backend/internal/utils"
 	"github.com/lib/pq"
 )
 
@@ -63,4 +65,24 @@ func (repo ExperienceRepo) CreateExperience(experience requests.CreateExperience
 
 
 	return nil
+}
+
+func (repo ExperienceRepo) UpdateExperience(id int, experience map[string]any) error{
+	query := utils.GenerateSingleUpdateQuery("experiences", experience, fmt.Sprintf("where id = %v", id))
+
+	result, err := repo.db.Exec(query)
+	if err != nil {
+		logger.Error.Printf("failed exec query update: %v", err)
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		logger.Error.Printf("failed to get total rows affected")
+		return err
+	}
+
+	logger.Info.Printf("rows affected: %v", rowsAffected)
+
+	return nil 
 }

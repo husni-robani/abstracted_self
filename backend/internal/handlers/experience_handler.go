@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
@@ -64,4 +65,45 @@ func (handler ExperienceHandler) CreateExperience(c *gin.Context) {
 
 	// return success response
 	response.Success(c, http.StatusCreated, "create experience successful", nil)
+}
+
+func (handler ExperienceHandler) UpdateExperience(c *gin.Context) {
+	// get id
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		logger.Error.Printf("failed to convert parameter id: %v", err)
+		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
+		return
+	}
+
+	// bind request
+	var updateExperienceRequest requests.UpdateExperienceRequest
+	if err := c.ShouldBind(&updateExperienceRequest); err != nil {
+		logger.Error.Printf("failed to bind body request: %v", err)
+		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
+		return
+	}
+
+	// validate request
+	invalidFields, err := utils.ValidateStruct(updateExperienceRequest)
+	if err != nil {
+		logger.Error.Println(err.Error())
+		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
+		return
+	}
+		// return validation errors
+	if len(invalidFields) >= 1 {
+		logger.Info.Printf("invalid request body: %v", invalidFields)
+		response.Error(c, http.StatusBadRequest, "invalid data", invalidFields)
+		return
+	}
+	
+	// insert to database
+	if err := handler.service.UpdateExperience(id, updateExperienceRequest); err != nil {
+		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
+		return
+	}
+	
+	// return response success
+	response.Success(c, http.StatusOK, "update experience successful", nil)
 }

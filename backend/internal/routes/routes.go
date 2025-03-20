@@ -24,8 +24,7 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 	router.GET("/technologies", handler.TechnologyHandler.GetTechnologies)
 
 	router.GET("/experiences", handler.ExperienceHandler.GetExperiences)
-	// test
-	router.POST("/experiences", handler.ExperienceHandler.CreateExperience)
+	router.PATCH("/experiences/:id", handler.ExperienceHandler.UpdateExperience)
 
 	authorizedRouter := router.Group("")
 	authorizedRouter.Use(auth.AuthMiddleware())
@@ -41,6 +40,8 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 
 		authorizedRouter.POST("/technologies", handler.TechnologyHandler.CreateTechnologies)
 		authorizedRouter.DELETE("/technologies/:id", handler.TechnologyHandler.DeleteTechnology)
+
+		authorizedRouter.POST("/experiences", handler.ExperienceHandler.CreateExperience)
 	}
 
 	return router
