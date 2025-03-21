@@ -13,6 +13,7 @@ type Handlers struct {
 	TechnologyTypeHandler *TechnologyTypeHandler
 	TechnologyHandler *TechnologyHandler
 	ExperienceHandler *ExperienceHandler
+	ProjectHandler *ProjectHandler
 }
 
 func SetupHandler(db *sql.DB) Handlers {
@@ -35,11 +36,16 @@ func SetupHandler(db *sql.DB) Handlers {
 	experienceService := services.NewExperienceService(experienceRepo)
 	experienceHandler := NewExperienceHandler(experienceService)
 
+	projectRepo := repositories.NewProjectRepository(db)
+	projectService := services.NewProjectService(projectRepo)
+	projectHandler := NewProjectHandler(projectService)
+
 	return Handlers{
 		BlogHandler: &blogHandler,
 		AuthHandler: &authHandler,
 		TechnologyTypeHandler: &techTypeHandler,
 		TechnologyHandler: &technologyHandler,
 		ExperienceHandler: &experienceHandler,
+		ProjectHandler: &projectHandler,
 	}
 }
