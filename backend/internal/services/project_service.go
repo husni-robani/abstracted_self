@@ -1,11 +1,17 @@
 package services
 
-import "github.com/husni-robani/abstracted_self/backend/internal/repositories"
+import (
+	"github.com/husni-robani/abstracted_self/backend/internal/repositories"
+)
 
 type ProjectService struct {
-	repo repositories.ProjectRepository
+	projectRepo repositories.ProjectRepository
+	projectImageRepo repositories.ProjectImageRepository
 }
 
-func NewProjectService(repo repositories.ProjectRepository) ProjectService {
-	return ProjectService{repo: repo}
+func NewProjectService(projectRepo repositories.ProjectRepository, projectImageRepo repositories.ProjectImageRepository) ProjectService {
+	return ProjectService{
+		projectRepo: projectRepo,
+		projectImageRepo: projectImageRepo,
+	}
 }

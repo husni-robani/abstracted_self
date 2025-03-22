@@ -37,7 +37,8 @@ func SetupHandler(db *sql.DB) Handlers {
 	experienceHandler := NewExperienceHandler(experienceService)
 
 	projectRepo := repositories.NewProjectRepository(db)
-	projectService := services.NewProjectService(projectRepo)
+	projectImageRepo := repositories.NewProjectImageRepository(db)
+	projectService := services.NewProjectService(projectRepo, projectImageRepo)
 	projectHandler := NewProjectHandler(projectService)
 
 	return Handlers{
