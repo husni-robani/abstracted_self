@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type Project struct {
 	Id          int    `json:"id,omitempty"`
@@ -11,4 +13,5 @@ type Project struct {
 	ProjectURL string `json:"project_url,omitempty"`
 	StartDate time.Time `json:"start_date"`
 	EndDate time.Time `json:"end_date"`
+	Images []ProjectImage `json:"images,omitempty"`
 }
