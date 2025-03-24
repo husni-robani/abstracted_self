@@ -57,3 +57,14 @@ func (handler ProjectHandler) CreateProject(c *gin.Context) {
 
 	response.Success(c, http.StatusCreated, "create project successful", nil)
 }
+
+func (handler ProjectHandler) GetProjects(c *gin.Context) {
+	projects, err := handler.service.GetAllProjectsWithImages()
+
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
+		return
+	}
+
+	response.Success(c, http.StatusOK, "get projects successful", projects)
+}

@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
+	"github.com/husni-robani/abstracted_self/backend/internal/models"
 	"github.com/husni-robani/abstracted_self/backend/internal/repositories"
 	"github.com/husni-robani/abstracted_self/backend/internal/utils"
 )
@@ -50,4 +51,13 @@ func (service ProjectService) CreateNewProject(project_data requests.CreateProje
 	}
 	
 	return nil
+}
+
+func (service ProjectService) GetAllProjectsWithImages() ([]models.Project, error){
+	projects, err := service.projectRepo.GetAllProjectsWithImages()
+	if err != nil {
+		return nil, err
+	}
+
+	return projects, nil
 }
