@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
+	"github.com/husni-robani/abstracted_self/backend/internal/models"
 )
 
 type ProjectImageRepository struct {
@@ -45,4 +46,28 @@ func (repo ProjectImageRepository) AddProjectImages(projectId int, images []mult
 	logger.Info.Printf("create project images successful | rows affected: %d", rowsAffected)
 
 	return nil
+}
+
+func (repo ProjectImageRepository) GetImagesByProjectId(projectId int) ([]models.ProjectImage, error) {
+	rows, err := repo.db.Query("SELECT id, file_name, file_size FROM project_images WHERE project_id = $1", projectId)
+	if err != nil {
+		logger.Error.Printf("failed to exec query select: %v", err)
+		return nil, err
+	}
+
+	var images []models.ProjectImage
+
+	for rows.Next() {
+		var image models.ProjectImage
+
+		if err := rows.Scan(&image.Id, &image.FileName, &image.FileSize); err != nil {
+			logger.Error.Printf("failed to scan data: %v", err)
+			return nil, err
+		}
+
+		images = append(images, image)
+	}
+
+
+	return images, nil
 }

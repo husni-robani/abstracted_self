@@ -61,3 +61,19 @@ func (service ProjectService) GetAllProjectsWithImages() ([]models.Project, erro
 
 	return projects, nil
 }
+
+func (service ProjectService) GetProjectById(id int) (models.Project, error) {
+	project, err := service.projectRepo.GetProjectById(id)
+	if err != nil {
+		return models.Project{}, err
+	}
+
+	images, err := service.projectImageRepo.GetImagesByProjectId(id)
+	if err != nil {
+		return models.Project{}, err
+	}
+
+	project.Images = images
+
+	return project, nil
+}

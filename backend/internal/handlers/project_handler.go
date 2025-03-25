@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
@@ -67,4 +70,26 @@ func (handler ProjectHandler) GetProjects(c *gin.Context) {
 	}
 
 	response.Success(c, http.StatusOK, "get projects successful", projects)
+}
+
+func (handler ProjectHandler) GetProjectById(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		logger.Error.Printf("failed to convert id: %v", err)
+		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
+		return
+	}
+
+	project, err := handler.service.GetProjectById(id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			response.Success(c, http.StatusNotFound, "project not found", nil)
+			return
+		}
+
+		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
+		return
+	}
+
+	response.Success(c, http.StatusOK, "get project successful", project)
 }
