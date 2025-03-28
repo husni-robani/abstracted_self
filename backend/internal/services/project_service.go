@@ -77,3 +77,11 @@ func (service ProjectService) GetProjectById(id int) (models.Project, error) {
 
 	return project, nil
 }
+
+func (service ProjectService) DeleteProjectById(id int) error {
+	if err := service.projectRepo.DeleteProjectById(id); err != nil {
+		return err
+	}
+
+	return nil
+}

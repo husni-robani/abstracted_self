@@ -128,3 +128,21 @@ func (repo ProjectRepository) GetProjectById(id int) (models.Project, error) {
 
 	return project, nil
 }
+
+func (repo ProjectRepository) DeleteProjectById(id int) error {
+	result, err := repo.db.Exec("DELETE FROM projects WHERE id = $1", id)
+	if err != nil {
+		logger.Error.Printf("failed to exec query delete: %v", err)
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		logger.Error.Printf("failed to get rows affected: %v", err)
+		return err
+	}
+
+	logger.Info.Printf("rows affected: %v", rowsAffected)
+
+	return nil
+}

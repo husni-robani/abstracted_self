@@ -93,3 +93,19 @@ func (handler ProjectHandler) GetProjectById(c *gin.Context) {
 
 	response.Success(c, http.StatusOK, "get project successful", project)
 }
+
+func (handler ProjectHandler) DeleteProject(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		logger.Error.Printf("invalid id: %v", err)
+		response.Error(c, http.StatusBadRequest, "id invalid!", nil)
+		return
+	}
+
+	if err := handler.service.DeleteProjectById(id); err != nil {
+		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
+		return
+	}
+
+	response.Success(c, http.StatusOK, "delete project successful", nil)
+}
