@@ -4,6 +4,7 @@
     <Hero></Hero>
     <!-- Bio Section -->
     <Bio></Bio>
+    <Contact></Contact>
   </ProfileLayout>
 </template>
 
@@ -11,4 +12,5 @@
 import ProfileLayout from "../layouts/ProfileLayout.vue";
 import Hero from "./partials/Hero.vue";
 import Bio from "./partials/Bio.vue";
+import Contact from "./partials/Contact.vue";
 </script>
