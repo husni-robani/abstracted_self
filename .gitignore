@@ -1,5 +1,6 @@
 .env
 .env.user_credential
+.DS_Store
 
 #   ==Front-End
 # Logs
