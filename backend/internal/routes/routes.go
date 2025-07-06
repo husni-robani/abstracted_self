@@ -3,6 +3,7 @@ package routes
 import (
 	"database/sql"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/husni-robani/abstracted_self/backend/internal/auth"
 	"github.com/husni-robani/abstracted_self/backend/internal/handlers"
@@ -10,6 +11,7 @@ import (
 
 func SetupRouter(db *sql.DB) *gin.Engine {
 	router := gin.Default()
+	router.Use(cors.Default())
 	// set "multipart forms" data like image
 	handler := handlers.SetupHandler(db)
 
