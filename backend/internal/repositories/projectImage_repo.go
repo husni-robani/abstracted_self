@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"mime/multipart"
+	"os"
 	"path/filepath"
 
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
@@ -19,10 +20,11 @@ func NewProjectImageRepository(db *sql.DB) ProjectImageRepository {
 }
 
 func (repo ProjectImageRepository) AddProjectImages(projectId int, images []multipart.FileHeader) error {
-	query := "INSERT INTO project_images (project_id, file_name, file_size, mime_type) VALUES"
+	query := "INSERT INTO project_images (project_id, file_name, file_size, mime_type, image_url) VALUES"
 
 	for i, image := range images {
-		values := fmt.Sprintf("('%d', '%s', '%d', '%s')", projectId, image.Filename, image.Size, filepath.Ext(image.Filename))
+		image_url := fmt.Sprintf("%s:%s/storage/project_images/%s", os.Getenv("BACKEND_HOST"), os.Getenv("SERVER_PORT"), image.Filename)
+		values := fmt.Sprintf("('%d', '%s', '%d', '%s', '%s')", projectId, image.Filename, image.Size, filepath.Ext(image.Filename), image_url)
 		
 		if i != len(images) - 1 {
 			values += ","
