@@ -6,4 +6,5 @@ type ProjectImage struct {
 	FileName string `json:"file_name,omitempty"`
 	FileSize int `json:"file_size,omitempty"`
 	MimeType string `json:"mime_type,omitempty"`
+	ImageURL string `json:"image_url,omitempty"`
 }
