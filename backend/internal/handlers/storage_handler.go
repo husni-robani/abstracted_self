@@ -30,5 +30,7 @@ func (StorageHandler) GetProjectImage(c *gin.Context) {
 		return
 	}
 
+	c.Header("Content-Type", "image/jpeg")
+	c.Header("Cache-Control", "public, max-age=86400")
 	c.File(full_path)
 }
