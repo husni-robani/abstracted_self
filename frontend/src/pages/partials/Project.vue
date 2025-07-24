@@ -48,8 +48,6 @@ onMounted(async () => {
 
     const jsonResponse = await response.json();
     projects.value = jsonResponse.data;
-
-    console.log(jsonResponse.data);
   } catch (e) {
     console.log(e);
   }
