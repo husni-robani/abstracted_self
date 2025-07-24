@@ -33,6 +33,8 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 
 	router.GET("/storage/project_images/:file_name", handler.StorageHandler.GetProjectImage)
 
+	router.GET("/profile/name", handler.ProfileHandler.GetName)
+
 	authorizedRouter := router.Group("")
 	authorizedRouter.Use(auth.AuthMiddleware())
 	{
