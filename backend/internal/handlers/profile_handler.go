@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
+	"github.com/husni-robani/abstracted_self/backend/internal/logger"
 	"github.com/husni-robani/abstracted_self/backend/internal/response"
 	"github.com/husni-robani/abstracted_self/backend/internal/services"
 )
@@ -18,12 +20,20 @@ func NewProfileHandler(service services.ProfileService) (ProfileHandler) {
 	}
 }
 
-func (handler ProfileHandler) GetName(ctx *gin.Context) {
-	name, err := handler.Service.GetName()
-	if err != nil {
-		response.Error(ctx, http.StatusInternalServerError, "Failed to get profile name", err)
+
+func (handler ProfileHandler) GetProfileData(c *gin.Context) {
+	var req requests.GetProfileRequest
+	if err := c.Bind(&req); err != nil {
+		logger.Error.Printf("Failed to bind query string: %v", err)
+		response.Error(c, http.StatusBadRequest, "query is not accepted", err)
 		return
 	}
 
-	response.Success(ctx, http.StatusOK, "Get profile name success", name)
+	profileData, err := handler.Service.GetProfileData(req.Name, req.Summary, req.Bio, req.Taglines)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "Failed to get profile name", err)
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Get profile name success", profileData)
 }
