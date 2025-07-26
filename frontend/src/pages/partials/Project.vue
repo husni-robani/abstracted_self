@@ -29,8 +29,6 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import ProjectBlock from "../../components/ProjectBlock.vue";
-
-const image_path = import.meta.env.VITE_PUBLIC_IMAGES;
 const api_endpoint =
   import.meta.env.VITE_API_URL + import.meta.env.VITE_GET_PROJECTS_ENDPOINT;
 const projects = ref([]);
