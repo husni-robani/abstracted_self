@@ -40,11 +40,11 @@ type ProjectWithImage struct {
 	StartDate sql.NullTime
 	EndDate sql.NullTime
 	ImageId sql.NullInt32
-	ImageURL sql.NullString
+	FileName sql.NullString
 }
 
 func (repo ProjectRepository) GetAllProjectsWithImages() ([]models.Project, error) {
-	query := "SELECT p.id, p.name, p.description, p.tech_stack, p.source_url, p.project_url, p.start_date, p.end_date, pi.id, pi.image_url FROM projects p LEFT JOIN project_images pi ON p.id = pi.project_id ORDER BY p.id"
+	query := "SELECT p.id, p.name, p.description, p.tech_stack, p.source_url, p.project_url, p.start_date, p.end_date, pi.id, pi.file_name FROM projects p LEFT JOIN project_images pi ON p.id = pi.project_id ORDER BY p.id"
 
 	rows, err := repo.db.Query(query)
 	if err != nil {
@@ -56,7 +56,7 @@ func (repo ProjectRepository) GetAllProjectsWithImages() ([]models.Project, erro
 
 	for rows.Next() {
 		var project ProjectWithImage
-		if err := rows.Scan(&project.ProjectId, &project.Name, &project.Description, pq.Array(&project.TechStack), pq.Array(&project.SourceURL), &project.ProjectURL, &project.StartDate, &project.EndDate, &project.ImageId, &project.ImageURL); err != nil {
+		if err := rows.Scan(&project.ProjectId, &project.Name, &project.Description, pq.Array(&project.TechStack), pq.Array(&project.SourceURL), &project.ProjectURL, &project.StartDate, &project.EndDate, &project.ImageId, &project.FileName); err != nil {
 			logger.Error.Printf("failed to scan project image: %v", err)
 			return nil, err
 		}
@@ -80,7 +80,7 @@ func (repo ProjectRepository) GetAllProjectsWithImages() ([]models.Project, erro
 			project.EndDate = projectContainer.EndDate.Time
 			project.Images = append(project.Images, models.ProjectImage{
 				Id: int(projectContainer.ImageId.Int32),
-				ImageURL: projectContainer.ImageURL.String,
+				FileName: projectContainer.FileName.String,
 			})
 
 			projects = append(projects, project)
@@ -98,7 +98,7 @@ func (repo ProjectRepository) GetAllProjectsWithImages() ([]models.Project, erro
 			project.EndDate = projectContainer.EndDate.Time
 			project.Images = append(project.Images, models.ProjectImage{
 				Id: int(projectContainer.ImageId.Int32),
-				ImageURL: projectContainer.ImageURL.String,
+				FileName: projectContainer.FileName.String,
 			})
 
 			projects = append(projects, project)
@@ -108,7 +108,7 @@ func (repo ProjectRepository) GetAllProjectsWithImages() ([]models.Project, erro
 		if projects[len(projects) - 1].Id == projectContainer.ProjectId {
 			projects[len(projects) - 1].Images = append(projects[len(projects)-1].Images, models.ProjectImage{
 				Id: int(projectContainer.ImageId.Int32),
-				ImageURL: projectContainer.ImageURL.String,
+				FileName: projectContainer.FileName.String,
 			})
 		}
 	}
