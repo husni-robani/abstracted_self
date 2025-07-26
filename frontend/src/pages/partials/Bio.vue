@@ -8,26 +8,10 @@
     </div>
     <!-- my bio content -->
     <div class="lg:flex">
-      <div class="lg:mr-20 lg:w-1/2 text-lg text-justify md:text-left">
-        <p>
-          <br />
-          Hello! i'm bani, a fresh graduate in informatics, passionate about
-          turning ideas into impactful software solution
-          <br /><br />
-          Throughout my studies and internship program, i'v gained hands-on
-          experience in developing various applications, especially websites,
-          utilizing multiple programming languages and frameworks such as
-          Python, JavaScript, PHP, Flask, Laravel, Nest js, Vue, and React.
-          Lately, I've been diving into backend development, focusing on
-          building robust APIs and implementing coding best practices to deliver
-          reliable and efficient solutions. for model services
-          <br /><br />
-          I also enjoy of coding and excited to bring my skills and knowledge to
-          the industry and contribute to the development of innovative
-          applications and websites
-          <br /><br />
-        </p>
-      </div>
+      <div
+        v-html="bio"
+        class="lg:mr-20 lg:w-1/2 text-lg text-justify md:text-left"
+      ></div>
       <!-- bio image -->
       <div class="mx-auto mt-6 lg:mt-0">
         <div
@@ -67,4 +51,28 @@
   </div>
 </template>
 
-<script setup></script>
+<script setup>
+import { onMounted, ref } from "vue";
+
+const bio = ref("");
+
+const api_endpoint =
+  import.meta.env.VITE_API_URL + import.meta.env.VITE_GET_PROFILEDATA_ENDPOINT;
+
+onMounted(async () => {
+  try {
+    const response = await fetch(api_endpoint + "?bio=true");
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch bio profile. Status: ${response.status}`
+      );
+    }
+
+    const jsonResponse = await response.json();
+    bio.value = jsonResponse.data.bio;
+  } catch (e) {
+    console.log(e);
+  }
+});
+</script>
