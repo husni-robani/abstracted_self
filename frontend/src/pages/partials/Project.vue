@@ -21,7 +21,7 @@
         :tech_stack="projectItem.tech_stack"
         :source_url="projectItem.source_url"
         :project_url="projectItem.source_url[0]"
-        :image_url="'http://' + projectItem.images[0].image_url"
+        :image_url="asset_endpoint + '/' + projectItem.images[0].file_name"
       />
     </ul>
   </div>
@@ -31,6 +31,8 @@ import { ref, onMounted } from "vue";
 import ProjectBlock from "../../components/ProjectBlock.vue";
 const api_endpoint =
   import.meta.env.VITE_API_URL + import.meta.env.VITE_GET_PROJECTS_ENDPOINT;
+const asset_endpoint =
+  import.meta.env.VITE_API_URL + import.meta.env.VITE_ASSET_IMAGES_ENDPOINT;
 const projects = ref([]);
 
 // fetch projects data from API
