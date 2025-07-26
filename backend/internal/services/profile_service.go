@@ -20,9 +20,10 @@ type ProfileData struct {
 	Summary string `json:"summary,omitempty"`
 	Bio string `json:"bio,omitempty"`
 	Taglines []string `json:"taglines,omitempty"`
+	ResumeFilePath string `json:"resume_file_path,omitempty"`
 }
 
-func (service ProfileService) GetProfileData(name bool, summary bool, bio bool, taglines bool) (ProfileData, error) {
+func (service ProfileService) GetProfileData(name bool, summary bool, bio bool, taglines bool, resume bool) (ProfileData, error) {
 	var dataResult ProfileData
 	
 	profileData, err := service.Repository.GetProfileData()
@@ -42,6 +43,9 @@ func (service ProfileService) GetProfileData(name bool, summary bool, bio bool, 
 	}
 	if taglines {
 		dataResult.Taglines = profileData.Taglines
+	}
+	if resume {
+		dataResult.ResumeFilePath = profileData.ResumeFilePath
 	}
 
 

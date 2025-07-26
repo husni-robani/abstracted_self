@@ -5,4 +5,5 @@ type GetProfileRequest struct {
 	Summary bool `form:"summary"`
 	Bio bool `form:"bio"`
 	Taglines bool `form:"taglines"`
+	Resume bool `form:"resume"`
 }
