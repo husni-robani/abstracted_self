@@ -1,9 +1,8 @@
 .env
 .env.user_credential
 .DS_Store
-/backend/storage/project_images/*
-/backend/storage/blog_images/*
-/backend/storage/resume/*
+/backend/storage/images/*
+/backend/storage/documents/*
 
 #   ==Front-End
 # Logs
