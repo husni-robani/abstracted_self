@@ -24,16 +24,17 @@ import { onMounted, ref } from "vue";
 const api_endpoint =
   import.meta.env.VITE_API_URL + import.meta.env.VITE_GET_PROFILEDATA_ENDPOINT;
 
-const taglines = [];
-
 const profile = ref({
   name: "",
   summary: "",
+  taglines: [""],
 });
 
 onMounted(async () => {
   try {
-    const response = await fetch(api_endpoint + "?name=true&summary=true");
+    const response = await fetch(
+      api_endpoint + "?name=true&summary=true&taglines=true"
+    );
 
     if (!response.ok) {
       throw new Error(
@@ -44,6 +45,19 @@ onMounted(async () => {
     const jsonResponse = await response.json();
     profile.value.name = jsonResponse.data.name;
     profile.value.summary = jsonResponse.data.summary;
+    profile.value.taglines = jsonResponse.data.taglines;
+
+    // Initialized typed
+    var typed = new Typed("#typed", {
+      strings: profile.value.taglines,
+      typeSpeed: 50,
+      backSpeed: 50,
+      backDelay: 2000,
+      cursorChar: "_",
+      shuffle: false,
+      smartBackspace: false,
+      loop: true,
+    });
   } catch (e) {
     console.log(e);
   }
