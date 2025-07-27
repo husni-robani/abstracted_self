@@ -1,5 +1,6 @@
 import { createApp } from "vue";
 import "./style.css";
-import Profile from "./pages/Profile.vue";
+import router from "./router";
+import App from "../App.vue";
 
-createApp(Profile).mount("#app");
+createApp(App).use(router).mount("#app");
