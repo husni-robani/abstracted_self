@@ -24,7 +24,7 @@ func LoadConfig() (*Config, error) {
 		return nil, err
 	}
 
-	err = godotenv.Load(".env.user_credential")
+	err = godotenv.Load(".env.access_credentials")
 	if err != nil {
 		logger.Error.Printf("failed load USER ENV: %v", err)
 		os.Exit(0)

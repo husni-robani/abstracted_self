@@ -1,5 +1,5 @@
 .env
-.env.user_credential
+.env.access_credentials
 .DS_Store
 /backend/storage/images/*
 /backend/storage/documents/*
