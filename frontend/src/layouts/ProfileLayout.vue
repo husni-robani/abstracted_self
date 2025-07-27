@@ -1,5 +1,3 @@
-<script setup></script>
-
 <template>
   <div class="min-h-screen">
     <!-- //navbar -->
@@ -9,7 +7,10 @@
       <!-- button -->
       <div class="flex flex-col justify-center items-center mx-auto md:m-0">
         <div class="peer text-gray-500 font-medium hover:text-gray-800">
-          <a href="/doc/husnirobani_CV.pdf" target="_blank" class="py-1 px-6"
+          <a
+            :href="asset_document_endpoint + '/' + resume_file_name"
+            target="_blank"
+            class="py-1 px-6"
             >Resume</a
           >
         </div>
@@ -161,3 +162,31 @@
     </div>
   </div>
 </template>
+<script setup>
+import { onMounted, ref } from "vue";
+
+const asset_document_endpoint =
+  import.meta.env.VITE_API_URL + import.meta.env.VITE_ASSET_DOCUMENTS_ENDPOINT;
+
+const api_endpoint =
+  import.meta.env.VITE_API_URL + import.meta.env.VITE_GET_PROFILEDATA_ENDPOINT;
+
+const resume_file_name = ref("");
+
+onMounted(async () => {
+  try {
+    const response = await fetch(api_endpoint + "?resume=true");
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch resume_file_path. Status: ${response.status}`
+      );
+    }
+
+    const jsonResponse = await response.json();
+    resume_file_name.value = jsonResponse.data.resume_file_path;
+  } catch (e) {
+    console.log(e);
+  }
+});
+</script>
