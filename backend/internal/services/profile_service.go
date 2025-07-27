@@ -20,7 +20,7 @@ type ProfileData struct {
 	Summary string `json:"summary,omitempty"`
 	Bio string `json:"bio,omitempty"`
 	Taglines []string `json:"taglines,omitempty"`
-	ResumeFilePath string `json:"resume_file_path,omitempty"`
+	ResumeFileName string `json:"resume_file_name,omitempty"`
 }
 
 func (service ProfileService) GetProfileData(name bool, summary bool, bio bool, taglines bool, resume bool) (ProfileData, error) {
@@ -45,7 +45,7 @@ func (service ProfileService) GetProfileData(name bool, summary bool, bio bool, 
 		dataResult.Taglines = profileData.Taglines
 	}
 	if resume {
-		dataResult.ResumeFilePath = profileData.ResumeFilePath
+		dataResult.ResumeFileName = profileData.ResumeFileName
 	}
 
 

@@ -184,7 +184,7 @@ onMounted(async () => {
     }
 
     const jsonResponse = await response.json();
-    resume_file_name.value = jsonResponse.data.resume_file_path;
+    resume_file_name.value = jsonResponse.data.resume_file_name;
   } catch (e) {
     console.log(e);
   }
