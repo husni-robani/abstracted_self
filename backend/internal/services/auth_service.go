@@ -18,9 +18,9 @@ func NewAuthService() AuthService {
 	return AuthService{}
 }
 
-func (service AuthService) LoginService(username, password string) (string, error) {
-	if username != os.Getenv("USERNAME") || password != os.Getenv("PASSWORD") {
-		logger.Info.Printf("user failed to login: invalid credentials (username: %s | password: %s)", username, password)
+func (service AuthService) LoginService(accessKey string) (string, error) {
+	if accessKey != os.Getenv("ACCESS_KEY") {
+		logger.Info.Printf("user failed to login: invalid credentials (accessKey: %s)", accessKey)
 		return "", ErrInvalidCredetials
 	}
 
@@ -30,7 +30,7 @@ func (service AuthService) LoginService(username, password string) (string, erro
 		IssuedAt: jwt.NewNumericDate(time.Now()),
 		NotBefore: jwt.NewNumericDate(time.Now()),
 		Issuer: "self-abstracted",
-		Subject: os.Getenv("USERNAME"),
+		Subject: os.Getenv("ACCESS_KEY"),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

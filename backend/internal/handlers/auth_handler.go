@@ -32,10 +32,10 @@ func (handler AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := handler.service.LoginService(loginRequest.Username, loginRequest.Password)
+	accessToken, err := handler.service.LoginService(loginRequest.AccessKey)
 	if err != nil {
 		if errors.Is(err, services.ErrInvalidCredetials) {
-			response.Error(c, http.StatusUnauthorized, err.Error(), nil)		
+			response.Error(c, http.StatusUnauthorized, err.Error(), struct{AccessKey string `json:"access_key"`}{AccessKey: "invalid access key"})		
 		}else {
 			response.Error(c, http.StatusInternalServerError, "internal server error", nil)
 		}
@@ -48,7 +48,7 @@ func (handler AuthHandler) Login(c *gin.Context) {
 }
 
 func (handler AuthHandler) Logout(c *gin.Context) {
-	err := os.Setenv("AUTH_TOKEN", "")	
+	err := os.Setenv("TOKEN", "")	
 	if err != nil {
 		logger.Error.Printf("failed to set env: %v", err)
 		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
