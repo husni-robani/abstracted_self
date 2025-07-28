@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-black flex items-center justify-center px-4">
+  <div class="min-h-screen bg-gray-900 flex items-center justify-center px-4">
     <div
       class="w-full max-w-md bg-gray-100 border border-gray-300 rounded-2xl px-8 py-10 shadow-xl"
     >
@@ -81,7 +81,7 @@ const login = async () => {
     // success
     const token = jsonResponse.data.token;
     localStorage.setItem("token", token);
-    router.push("/testuyy");
+    router.push("/admin/profile");
   } catch (err) {
     error.value =
       err.message === "invalid-json"
