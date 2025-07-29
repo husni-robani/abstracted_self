@@ -7,4 +7,5 @@ type GetProfileRequest struct {
 	Taglines bool `form:"taglines"`
 	Resume bool `form:"resume"`
 	Skills bool `form:"skills"`
+	Cache bool `form:"cache"`
 }

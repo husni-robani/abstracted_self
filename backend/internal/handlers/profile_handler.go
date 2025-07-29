@@ -36,7 +36,10 @@ func (handler ProfileHandler) GetProfileData(c *gin.Context) {
 	}
 
 	c.Header("Content-Type", "application/json")
-	c.Header("Cache-Control", "public, max-age=86400")
+	if req.Cache {
+		c.Header("Cache-Control", "public, max-age=86400")
+	}
+
 
 	response.Success(c, http.StatusOK, "Get profile name success", profileData)
 }
