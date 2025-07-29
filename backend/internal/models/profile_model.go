@@ -6,5 +6,6 @@ type Profile struct {
 	Bio string `json:"bio"`
 	Taglines []string `json:"taglines"`
 	ResumeFileName string `json:"resume_file_name"`
+	Skills []string `json:"skills"`
 }
 
