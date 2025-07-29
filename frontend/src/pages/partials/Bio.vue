@@ -61,7 +61,7 @@ const api_endpoint =
 
 onMounted(async () => {
   try {
-    const response = await fetch(api_endpoint + "?bio=true");
+    const response = await fetch(api_endpoint + "?cache=true&bio=true");
 
     if (!response.ok) {
       throw new Error(

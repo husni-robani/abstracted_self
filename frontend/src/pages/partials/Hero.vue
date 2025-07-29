@@ -33,7 +33,7 @@ const profile = ref({
 onMounted(async () => {
   try {
     const response = await fetch(
-      api_endpoint + "?name=true&summary=true&taglines=true"
+      api_endpoint + "?cache=true&name=true&summary=true&taglines=true"
     );
 
     if (!response.ok) {
