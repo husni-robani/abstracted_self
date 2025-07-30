@@ -3,6 +3,7 @@
 .DS_Store
 /backend/storage/images/*
 /backend/storage/documents/*
+/backend/internal/db/profile_data_backup.json
 
 #   ==Front-End
 # Logs

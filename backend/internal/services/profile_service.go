@@ -1,7 +1,6 @@
 package services
 
 import (
-	"log"
 	"mime/multipart"
 	"path/filepath"
 
@@ -92,7 +91,6 @@ func (service ProfileService) UpdateProfileData(dataRequest requests.UpdateProfi
 	if dataRequest.Summary != "" {
 		originalProfile.Summary = dataRequest.Summary
 	}
-	log.Println("New taglines: ", dataRequest.Taglines)
 	if dataRequest.Taglines != nil {
 		originalProfile.Taglines = dataRequest.Taglines
 	}
