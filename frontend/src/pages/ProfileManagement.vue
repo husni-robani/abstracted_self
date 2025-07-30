@@ -1,8 +1,8 @@
 <template>
   <AdminLayout>
-    <div class="max-w-5xl mx-auto space-y-6">
-      <h1 class="text-2xl font-semibold font-mono mb-6">Your Profile</h1>
+    <div class="max-w-6xl mx-auto space-y-6">
       <!-- Main Form -->
+      <h1 class="text-3xl font-semibold font-mono mb-6">Your Profile</h1>
       <div
         class="mx-auto flex flex-col justify-around gap-5 bg-white shadow rounded-lg p-6"
       >
