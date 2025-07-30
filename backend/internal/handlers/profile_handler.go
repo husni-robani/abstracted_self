@@ -8,6 +8,7 @@ import (
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
 	"github.com/husni-robani/abstracted_self/backend/internal/response"
 	"github.com/husni-robani/abstracted_self/backend/internal/services"
+	"github.com/husni-robani/abstracted_self/backend/internal/utils"
 )
 
 type ProfileHandler struct {
@@ -42,4 +43,54 @@ func (handler ProfileHandler) GetProfileData(c *gin.Context) {
 
 
 	response.Success(c, http.StatusOK, "Get profile name success", profileData)
+}
+
+func (handler ProfileHandler) UpdateProfile(c *gin.Context){
+	var reqBody requests.UpdateProfileRequest
+
+	// get form data
+	if err := c.Bind(&reqBody); err != nil {
+		logger.Error.Println("Failed to bind body request: ", err)
+		response.Error(c, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+
+	// validate data
+	invalidFieldErrors, err := utils.ValidateStruct(reqBody)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error(), nil)
+		return 
+	}
+
+	// get request multipart form file
+	reqBody.ResumeFile, err = c.FormFile("resume_file")
+	if err != nil {
+		if err == http.ErrMissingFile {
+			reqBody.ResumeFile = nil
+		}else {
+			logger.Error.Println("failed to get request form file: ", err)
+			response.Error(c, http.StatusInternalServerError, "internal server error", nil)
+			return
+		}
+	}
+	// validate file
+	if reqBody.ResumeFile != nil {
+		if err := utils.ValidateFile(reqBody.ResumeFile, []string{"application/pdf"}, 300 << 10); err != nil {
+			invalidFieldErrors["resume_file"] = err.Error()
+		}
+	}
+
+	// return all validation errors
+	if len(invalidFieldErrors) >= 1 {
+		logger.Info.Printf("Invalid body request: %#v", invalidFieldErrors)
+		response.Error(c, http.StatusBadRequest, "invalid body request", invalidFieldErrors)
+		return
+	}
+
+	// update profile
+	if err := handler.Service.UpdateProfileData(reqBody); err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error(), nil)
+	}
+
+	response.Success(c, http.StatusOK, "Update profile successful!", nil)
 }
