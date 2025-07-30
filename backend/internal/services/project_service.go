@@ -39,7 +39,7 @@ func (service ProjectService) CreateNewProject(project_data requests.CreateProje
 		project_data.Images[i].Filename = newFileName
 
 		// store to storage
-		err := utils.SaveFile(&project_data.Images[i], "./storage/project_images")
+		err := utils.SaveFile(&project_data.Images[i], "./storage/images")
 		if err != nil {
 			return err
 		}
