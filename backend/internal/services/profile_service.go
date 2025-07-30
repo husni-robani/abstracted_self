@@ -1,8 +1,15 @@
 package services
 
 import (
+	"log"
+	"mime/multipart"
+	"path/filepath"
+
+	"github.com/google/uuid"
+	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
 	"github.com/husni-robani/abstracted_self/backend/internal/repositories"
+	"github.com/husni-robani/abstracted_self/backend/internal/utils"
 )
 
 type ProfileService struct {
@@ -27,7 +34,7 @@ type ProfileData struct {
 func (service ProfileService) GetProfileData(name bool, summary bool, bio bool, taglines bool, resume bool, skills bool) (ProfileData, error) {
 	var dataResult ProfileData
 	
-	profileData, err := service.Repository.GetProfileData()
+	profileData, err := service.Repository.ReadProfileData()
 	if err != nil {
 		logger.Error.Println("Failed to get profile data")
 		return dataResult, err
@@ -54,4 +61,68 @@ func (service ProfileService) GetProfileData(name bool, summary bool, bio bool, 
 
 
 	return dataResult, nil
+}
+
+func (service ProfileService) UpdateProfileData(dataRequest requests.UpdateProfileRequest) (error) {
+	originalProfile, err := service.Repository.ReadProfileData()
+	if err != nil {
+		return err
+	}
+
+	// check request consist of new resume file
+	if dataRequest.ResumeFile != nil {
+		// save the file
+		newFileName, err := saveNewResume(dataRequest.ResumeFile)
+		if err != nil {
+			return err
+		}
+		// delete old resume file
+		utils.RemoveFile("./storage/documents/", originalProfile.ResumeFileName)
+		// set the new resume_file_name
+		originalProfile.ResumeFileName = newFileName
+	}
+
+	// check which attributes are not nill value
+	if dataRequest.Name != "" {
+		originalProfile.Name = dataRequest.Name
+	}
+	if dataRequest.Bio != "" {
+		originalProfile.Bio = dataRequest.Bio
+	}
+	if dataRequest.Summary != "" {
+		originalProfile.Summary = dataRequest.Summary
+	}
+	log.Println("New taglines: ", dataRequest.Taglines)
+	if dataRequest.Taglines != nil {
+		originalProfile.Taglines = dataRequest.Taglines
+	}
+	if dataRequest.Skills != nil {
+		originalProfile.Skills = dataRequest.Skills
+	}
+
+	// save new profile
+	if err := service.Repository.WriteProfileData(originalProfile); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+
+// helper function for UpdateProfileData, returns new filename and error
+func saveNewResume(resumeFile *multipart.FileHeader) (file_name string, err error){
+	// Generate file name
+	extension := filepath.Ext(resumeFile.Filename)
+	newFileName := uuid.New().String() + extension
+
+	// set new file name
+	resumeFile.Filename = newFileName
+
+	// store to storage
+	if err := utils.SaveFile(resumeFile, "./storage/documents"); err != nil {
+		logger.Error.Printf("store resume file to storage failed: %v", err)
+		return "", err
+	}
+
+	return resumeFile.Filename, nil
 }
