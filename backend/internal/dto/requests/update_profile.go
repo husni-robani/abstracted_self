@@ -7,6 +7,6 @@ type UpdateProfileRequest struct {
 	Summary string `form:"summary,omitempty"`
 	Bio string `form:"bio,omitempty"`
 	Taglines []string `form:"taglines,omitempty"`
-	Skills []string `form:"skills[],omitempty"`
+	Skills []string `form:"skills,omitempty"`
 	ResumeFile *multipart.FileHeader
 }
