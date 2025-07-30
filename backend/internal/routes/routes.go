@@ -35,6 +35,8 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 	router.GET("/assets/documents/:file_name", handler.StorageHandler.GetDocuments)
 
 	router.GET("/profile", handler.ProfileHandler.GetProfileData)
+	// Will be move to authorizedRouter latter
+	router.PUT("/profile", handler.ProfileHandler.UpdateProfile)
 
 	authorizedRouter := router.Group("")
 	authorizedRouter.Use(auth.AuthMiddleware())
