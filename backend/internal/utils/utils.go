@@ -41,9 +41,20 @@ func SaveFile(fileHeader *multipart.FileHeader, saveDir string) error {
 	return nil
 }
 
+func RemoveFile(dirPath string, fileName string) error {
+	err := os.Remove(dirPath + fileName)
+	if err != nil {
+		logger.Error.Printf("remove file failed: %v", err)
+		return err
+	}
+
+	logger.Info.Printf("file removed successfully: %s/%s", dirPath, fileName)
+	return nil
+}
+
 func ValidateFile(fileHeader *multipart.FileHeader, validTypes []string, maxSize int64) error {
 	if fileHeader.Size > maxSize {
-		return errors.New("image larger than 300 KB")
+		return fmt.Errorf("image larger than %d KB",(maxSize / 1024))
 	}
 
 	if  !slices.Contains(validTypes, fileHeader.Header.Get("Content-Type")) {
