@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
@@ -14,8 +15,8 @@ func NewProfileRepository() (ProfileRepository) {
 	return ProfileRepository{}
 }
 
-func (repository ProfileRepository) GetProfileData() (models.Profile, error) {
-	bytes, err := os.ReadFile("./internal/db/profile_data.json")
+func (ProfileRepository) ReadProfileData() (models.Profile, error) {
+	bytes, err := os.ReadFile(os.Getenv("PROFILE_DB_PATH"))
 	if err != nil {
 		logger.Error.Printf("Failed to read json file: %v", err)
 		return models.Profile{}, err
@@ -28,4 +29,18 @@ func (repository ProfileRepository) GetProfileData() (models.Profile, error) {
 	}
 
 	return profileData, nil
+}
+
+func (ProfileRepository) WriteProfileData(newProfile models.Profile) (error) {
+	marshaledData, err := json.MarshalIndent(newProfile, "", " ")
+	if err != nil {
+		logger.Error.Println("failed to marshal: ", err)
+		return errors.New("failed to marshal profile data")
+	}
+
+	if err := os.WriteFile(os.Getenv("PROFILE_DB_PATH"), marshaledData, 0644); err != nil {
+		logger.Error.Println("failed to write file: ", err)
+		return errors.New("failed to write profile data")
+	}
+	return nil
 }
