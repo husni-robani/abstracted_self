@@ -57,3 +57,7 @@ func (handler AuthHandler) Logout(c *gin.Context) {
 
 	response.Success(c, http.StatusOK, "logout successful", nil)
 }
+
+func (AuthHandler) Check(c *gin.Context) {
+	response.Success(c, http.StatusOK, "Authenticated", nil)
+}

@@ -27,7 +27,7 @@ func (service TechnologyService) GetTechnologies() ([]models.Technology, error) 
 		return nil, err
 	}
 
-return technolgies, err
+	return technolgies, err
 }
 
 func (service TechnologyService) CreateTechnologies(technologies []requests.CreateTechnologyRequest) error {
