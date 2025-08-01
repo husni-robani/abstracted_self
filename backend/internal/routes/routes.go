@@ -3,18 +3,19 @@ package routes
 import (
 	"database/sql"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/husni-robani/abstracted_self/backend/internal/auth"
 	"github.com/husni-robani/abstracted_self/backend/internal/handlers"
 )
 
 func SetupRouter(db *sql.DB) *gin.Engine {
-	router := gin.Default()
-	router.Use(cors.Default())
 	// set "multipart forms" data like image
 	handler := handlers.SetupHandler(db)
+	
+	router := gin.Default()
+	router.Use(auth.DefaultCorsConfig())
 
+	// public router
 	router.POST("/auth/login", handler.AuthHandler.Login)
 
 	router.GET("/blogs", handler.BlogHandler.GetBlogs)
@@ -35,11 +36,10 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 	router.GET("/assets/documents/:file_name", handler.StorageHandler.GetDocuments)
 
 	router.GET("/profile", handler.ProfileHandler.GetProfileData)
-	// Will be move to authorizedRouter latter
-	router.PUT("/profile", handler.ProfileHandler.UpdateProfile)
 
-	authorizedRouter := router.Group("")
-	authorizedRouter.Use(auth.AuthMiddleware())
+
+	// authorized router
+	authorizedRouter := router.Group("", auth.AuthMiddleware())
 	{
 		authorizedRouter.POST("/auth/logout", handler.AuthHandler.Logout)
 		authorizedRouter.POST("/auth/check", handler.AuthHandler.Check)
@@ -60,6 +60,7 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 
 		authorizedRouter.POST("/projects", handler.ProjectHandler.CreateProject)
 		authorizedRouter.DELETE("/projects/:id", handler.ProjectHandler.DeleteProject)
+		authorizedRouter.PUT("/profile", handler.ProfileHandler.UpdateProfile)
 	}
 
 	return router
