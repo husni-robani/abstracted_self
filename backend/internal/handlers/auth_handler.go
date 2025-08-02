@@ -61,3 +61,14 @@ func (handler AuthHandler) Logout(c *gin.Context) {
 func (AuthHandler) Check(c *gin.Context) {
 	response.Success(c, http.StatusOK, "Authenticated", nil)
 }
+
+func (handler AuthHandler) RenewToken(c *gin.Context) {
+	newToken, err := handler.service.RenewTokenService()
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
+		return 
+	}
+	
+	data := map[string]string{"token": newToken}
+	response.Success(c, http.StatusOK, "token renewed", data)
+}

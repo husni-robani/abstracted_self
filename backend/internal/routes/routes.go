@@ -43,6 +43,7 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 	{
 		authorizedRouter.POST("/auth/logout", handler.AuthHandler.Logout)
 		authorizedRouter.POST("/auth/check", handler.AuthHandler.Check)
+		authorizedRouter.GET("/auth/renew", handler.AuthHandler.RenewToken)
 		
 		authorizedRouter.POST("/blogs", handler.BlogHandler.CreateBlog)
 		authorizedRouter.DELETE("/blogs/:id", handler.BlogHandler.DeleteBlog)
