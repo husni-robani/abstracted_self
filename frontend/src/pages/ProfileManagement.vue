@@ -145,13 +145,14 @@ async function saveProfile() {
     formData.append(key, changedFields[key]);
   }
 
-  console.log("taglines: " + formData.getAll("taglines"));
-  console.log("skills: " + formData.getAll("skills"));
-
   try {
+    const token = localStorage.getItem("token");
     const res = await fetch(update_profile_endpoint, {
       method: "PUT",
       body: formData,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (!res.ok) {
