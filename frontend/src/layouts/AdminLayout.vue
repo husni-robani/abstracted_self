@@ -1,8 +1,8 @@
 <template>
-  <div class="min-h-screen bg-gray-100 text-gray-800">
+  <div class="min-h-screen bg-gray-50 text-gray-900">
     <!-- Sticky top nav -->
     <header
-      class="sticky top-0 z-40 bg-gray-900 text-gray-100 px-4 py-3 flex items-center justify-between shadow"
+      class="sticky top-0 z-40 bg-gray-900 text-gray-50 px-4 py-3 flex items-center justify-between shadow"
     >
       <div class="text-xl font-bold font-mono">Husni's Console</div>
 
