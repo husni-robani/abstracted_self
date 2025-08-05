@@ -1,6 +1,6 @@
 <template>
   <AdminLayout>
-    <div class="max-w-6xl mx-auto space-y-6">
+    <div class="max-w-7xl mx-auto space-y-6">
       <!-- Main Form -->
       <h1 class="text-3xl font-semibold font-mono mb-6">Your Profile</h1>
       <div
@@ -52,7 +52,7 @@
         <div class="mt-6 text-right">
           <button
             @click="saveProfile"
-            class="bg-gray-900 text-white px-5 py-2 rounded-md hover:bg-gray-800 font-mono"
+            class="bg-gray-900 text-white px-5 py-2 rounded-md hover:bg-gray-800 font-mono hover:cursor-pointer"
           >
             Save
           </button>

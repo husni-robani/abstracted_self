@@ -12,7 +12,13 @@
         {{ fileName || placeholder }}
       </span>
     </div>
-    <input type="file" class="hidden" ref="fileInput" @change="onFileChange" />
+    <input
+      type="file"
+      class="hidden"
+      ref="fileInput"
+      @change="onFileChange"
+      :multiple="multiple"
+    />
   </div>
 </template>
 
@@ -22,7 +28,10 @@ import { ArrowUpTrayIcon } from "@heroicons/vue/24/solid";
 
 // Props and emits
 const props = defineProps({
-  modelValue: File,
+  modelValue: {
+    type: [File, Array],
+    default: null,
+  },
   label: {
     type: String,
     default: "Upload file",
@@ -30,6 +39,10 @@ const props = defineProps({
   placeholder: {
     type: String,
     default: "Click to upload",
+  },
+  multiple: {
+    type: Boolean,
+    default: false,
   },
 });
 const emit = defineEmits(["update:modelValue"]);
@@ -39,16 +52,23 @@ const fileInput = ref(null);
 
 // Computed file name
 const fileName = computed(() => {
-  return typeof props.modelValue === "string"
-    ? props.modelValue
-    : props.modelValue?.name || "";
+  if (props.multiple && Array.isArray(props.modelValue)) {
+    return props.modelValue.map((f) => f.name).join(", ");
+  }
+  if (!props.multiple && props.modelValue instanceof File) {
+    return props.modelValue.name;
+  }
+
+  return props.placeholder;
 });
 
 // File change handler
 function onFileChange(event) {
-  const file = event.target.files[0];
-  if (file) {
-    emit("update:modelValue", file);
+  const files = event.target.files;
+  if (props.multiple) {
+    emit("update:modelValue", Array.from(files));
+  } else {
+    emit("update:modelValue", files[0] || null);
   }
 }
 </script>
