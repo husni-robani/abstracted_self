@@ -44,7 +44,7 @@ type ProjectWithImage struct {
 }
 
 func (repo ProjectRepository) GetAllProjectsWithImages() ([]models.Project, error) {
-	query := "SELECT p.id, p.name, p.description, p.tech_stack, p.source_url, p.project_url, p.start_date, p.end_date, pi.id, pi.file_name FROM projects p LEFT JOIN project_images pi ON p.id = pi.project_id ORDER BY p.id"
+	query := "SELECT p.id, p.name, p.description, p.tech_stack, p.source_url, p.project_url, p.start_date, p.end_date, pi.id, pi.file_name FROM projects p LEFT JOIN project_images pi ON p.id = pi.project_id ORDER BY p.id desc"
 
 	rows, err := repo.db.Query(query)
 	if err != nil {
