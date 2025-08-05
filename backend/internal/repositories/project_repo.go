@@ -119,7 +119,7 @@ func (repo ProjectRepository) GetAllProjectsWithImages() ([]models.Project, erro
 func (repo ProjectRepository) GetProjectById(id int) (models.Project, error) {
 	var project models.Project
 
-	row := repo.db.QueryRow("SELECT p.id, p.name, p.description, p.tech_stack, p.source_url, p.project_url, p.start_date, p.end_date FROM projects p")
+	row := repo.db.QueryRow("SELECT p.id, p.name, p.description, p.tech_stack, p.source_url, p.project_url, p.start_date, p.end_date FROM projects p WHERE id = $1", id)
 
 	if err := row.Scan(&project.Id, &project.Name, &project.Description, pq.Array(&project.TechStack), pq.Array(&project.SourceURL), &project.ProjectURL, &project.StartDate, &project.EndDate); err != nil {
 		logger.Error.Printf("failed to scan: %v", err)
