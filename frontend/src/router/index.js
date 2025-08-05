@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import Profile from "../pages/Profile.vue";
 import Login from "../pages/Login.vue";
 import ProfileManagement from "../pages/ProfileManagement.vue";
+import ProjectManagement from "../pages/ProjectManagement.vue";
 
 // routes
 const routes = [
@@ -22,6 +23,7 @@ const routes = [
     path: "/admin/projects",
     name: "Projects",
     meta: { title: "Projects", requiresAuth: true },
+    component: ProjectManagement,
   },
 ];
 
@@ -72,7 +74,7 @@ router.beforeEach(async (to, from, next) => {
       if (!renewResponse.ok) throw new Error("Token renewal failed");
 
       const renewData = await renewResponse.json();
-      localStorage.setItem("token", renewData.token);
+      localStorage.setItem("token", renewData.data.token);
     }
 
     // Check token validity
