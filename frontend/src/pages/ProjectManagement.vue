@@ -115,6 +115,7 @@
           v-for="(projectData, index) in projects"
           :key="projectData.id"
           :project="projectData"
+          @refetch="getProjects"
         />
       </div>
     </div>
@@ -197,6 +198,7 @@ async function saveProject() {
     project.end_date = "";
     project.images = [];
     showForm = false;
+    getProjects();
     alert("Create project successful!");
   } catch (e) {
     console.error(e);
@@ -208,7 +210,7 @@ async function saveProject() {
 const get_projects_endpoint =
   import.meta.env.VITE_API_URL + import.meta.env.VITE_GET_PROJECTS_ENDPOINT;
 const projects = reactive([]);
-onMounted(async () => {
+async function getProjects() {
   try {
     const response = await fetch(get_projects_endpoint);
 
@@ -218,5 +220,8 @@ onMounted(async () => {
   } catch (e) {
     console.error("Failed to fetch projects:", e);
   }
+}
+onMounted(() => {
+  getProjects();
 });
 </script>

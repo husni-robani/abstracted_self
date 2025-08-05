@@ -64,12 +64,19 @@
           <GithubIcon class="w-6 h-6" />
         </a>
       </div>
-      <router-link
-        :to="`/`"
-        class="text-sm font-mono text-gray-800 hover:underline"
-      >
-        Edit
-      </router-link>
+      <div>
+        <router-link
+          :to="`/`"
+          class="px-2 text-sm text-center font-mono text-gray-800 hover:underline"
+          >Edit</router-link
+        >
+        <button
+          class="px-2 text-center text-sm font-mono text-red-500 hover:underline hover:cursor-pointer"
+          @click="deleteProject"
+        >
+          Delete
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -77,16 +84,52 @@
 <script setup>
 import { ArrowTopRightOnSquareIcon } from "@heroicons/vue/24/outline";
 import GithubIcon from "../assets/GithubIcon.vue";
+import { defineEmits } from "vue";
 
 const asset_endpoint =
   import.meta.env.VITE_API_URL + import.meta.env.VITE_ASSET_IMAGES_ENDPOINT;
+const delete_project_endpoint =
+  import.meta.env.VITE_API_URL + import.meta.env.VITE_DELETE_PROJECT_ENDPOINT;
 
 const props = defineProps({
   project: Object,
 });
 
+const emit = defineEmits(["refetch"]);
+
 function formatDate(dateStr) {
   const options = { year: "numeric", month: "short", day: "numeric" };
   return new Date(dateStr).toLocaleDateString("en-US", options);
+}
+
+async function deleteProject() {
+  if (!confirm("Are you sure ?")) {
+    console.log("Delete Cancel");
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem("token");
+    const res = await fetch(delete_project_endpoint + "/" + props.project.id, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const resJson = res.json();
+
+    if (!res.ok) {
+      throw new Error(
+        `delete project failed\nstatus: ${res.status}\nmessage: ${resJson.message}`
+      );
+    }
+
+    emit("refetch");
+    alert("Project deleted!");
+  } catch (e) {
+    console.error(e);
+    alert(e);
+  }
 }
 </script>
