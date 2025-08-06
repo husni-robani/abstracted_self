@@ -109,3 +109,27 @@ func (handler ProjectHandler) DeleteProject(c *gin.Context) {
 
 	response.Success(c, http.StatusOK, "delete project successful", nil)
 }
+
+func (handler ProjectHandler) UpdateProject(c *gin.Context) {
+	projectId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		logger.Error.Printf("ID convertion failed: %v", err)
+		response.Error(c, http.StatusBadRequest, "ID convertion is failed", nil)
+		return
+	}
+
+	var projectRequest requests.UpdateProjectRequest
+	if err := c.Bind(&projectRequest); err != nil {
+		logger.Error.Printf("Bind request form failed: %v", err)
+		response.Error(c, http.StatusBadRequest, "Bind request form are failed", nil)
+		return
+	}
+
+	if err := handler.service.UpdateProject(projectId, projectRequest); err != nil {
+		logger.Error.Printf("update project is failed: %v", err)
+		response.Error(c, http.StatusInternalServerError, "Internal Server Error", nil)
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Update project is succeeded", nil)
+}
