@@ -1,11 +1,14 @@
 package repositories
 
 import (
+	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
 	"github.com/husni-robani/abstracted_self/backend/internal/models"
@@ -72,4 +75,54 @@ func (repo ProjectImageRepository) GetImagesByProjectId(projectId int) ([]models
 
 
 	return images, nil
+}
+
+func (repo ProjectImageRepository) GetImageById(id int) (models.ProjectImage, error) {
+	var projectImage models.ProjectImage
+
+	ctx, cancel := context.WithTimeout(context.Background(), 20 * time.Second)
+	defer cancel()
+	
+	row := repo.db.QueryRowContext(ctx, "SELECT id, file_name FROM project_images WHERE id = $1;", id)
+
+	if err := row.Scan(&projectImage.Id, &projectImage.FileName); err != nil {
+		logger.Error.Printf("scan project_images failed: %v", err)
+		return projectImage, err
+	}
+
+	return projectImage, nil
+}
+
+
+func (repo ProjectImageRepository) DeleteProjectImageByID(id ...int) error {
+	if len(id) < 1 {
+		err := errors.New("argument cannot be empty, at least 1 argument needed")
+		logger.Error.Printf("Delete project image is failed: %v", err)
+		return err
+	}
+
+	ids := ""
+	for i, v := range id {
+		if i == 0 {
+			ids += fmt.Sprintf("%v", v)
+			continue
+		}
+		ids += fmt.Sprintf(", %d", v)
+	}
+
+	query := fmt.Sprintf("DELETE FROM project_images WHERE id in (%s);", ids)
+
+	timeOut, cancel := context.WithTimeout(context.Background(), 20 * time.Second)
+	defer cancel()
+
+	result, err := repo.db.ExecContext(timeOut, query)
+	if err != nil {
+		logger.Error.Printf("delete query execution is failed: %v", err)
+		return err
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	logger.Info.Printf("delete project image is succeeded | Rows affected: %d", rowsAffected)
+
+	return nil
 }
