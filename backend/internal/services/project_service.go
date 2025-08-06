@@ -1,10 +1,13 @@
 package services
 
 import (
+	"fmt"
 	"path/filepath"
+	"sync"
 
 	"github.com/google/uuid"
 	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
+	"github.com/husni-robani/abstracted_self/backend/internal/logger"
 	"github.com/husni-robani/abstracted_self/backend/internal/models"
 	"github.com/husni-robani/abstracted_self/backend/internal/repositories"
 	"github.com/husni-robani/abstracted_self/backend/internal/utils"
@@ -81,6 +84,106 @@ func (service ProjectService) GetProjectById(id int) (models.Project, error) {
 func (service ProjectService) DeleteProjectById(id int) error {
 	if err := service.projectRepo.DeleteProjectById(id); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (service ProjectService) UpdateProject(id int, project requests.UpdateProjectRequest) error {
+	// Handle NewImages and ImagesToDelete differently
+	
+	// []TechStack data processing for query generation
+	techStack := "{"
+	for i, v := range project.TechStack {
+		if i == len(project.TechStack) - 1{
+			techStack += fmt.Sprintf("%v }", v)
+			break
+		}
+
+		techStack += fmt.Sprintf("%v, ", v)
+	}
+
+	// []SourceURL data processing for query generation
+	sourceUrl := "{"
+	for i, v := range project.SourceURL {
+		if i == len(project.SourceURL) - 1{
+			sourceUrl += fmt.Sprintf("%v }", v)
+			break
+		}
+
+		sourceUrl += fmt.Sprintf("%v, ", v)
+	}
+
+
+	fieldsUpdate := map[string]any{
+		"name": project.Name,
+		"description": project.Description,
+		"tech_stack": techStack,
+		"source_url": sourceUrl,
+		"project_url": project.ProjectURL,
+		"start_date": project.StartDate,
+		"end_date": project.EndDate,
+	}
+
+	query := utils.GenerateSingleUpdateQuery("projects", fieldsUpdate, fmt.Sprintf("WHERE id = %d;", id))
+
+	if err := service.projectRepo.UpdateProjectById(query); err != nil {
+		return err
+	}
+
+	// Handle NewImages
+	if len(project.NewImages) > 0 {
+		// set new filename and save to storage
+		for i := range project.NewImages {
+			// generate new filename
+			extension := filepath.Ext(project.NewImages[i].Filename)
+			newFileName := uuid.New().String() + extension
+			
+			// set new filename to image
+			project.NewImages[i].Filename = newFileName
+
+			// store to storage
+			err := utils.SaveFile(&project.NewImages[i], "./storage/images")
+			if err != nil {
+				return err
+			}
+		}
+		
+		err := service.projectImageRepo.AddProjectImages(id, project.NewImages);
+		if err != nil {
+			return err
+		}
+	}
+
+	// Handle ImagesToDelete
+	if len(project.ImagesToDelete) > 0 {
+		// delete the file in storage
+		var wg sync.WaitGroup
+		for _, id := range project.ImagesToDelete {
+			wg.Add(1)
+			go func(){
+				defer wg.Done()
+				projectImage, err := service.projectImageRepo.GetImageById(id)
+				if err != nil {
+					logger.Error.Printf("delete image file from storage failed: %v", err)
+					return
+				}
+
+				if err := utils.RemoveFile("./storage/images/", projectImage.FileName); err != nil {
+					logger.Error.Printf("delete image file from storage failed: %v", err)
+					return
+				}
+
+				logger.Info.Printf("Delete %s from storage succeeded", projectImage.FileName)
+			}()
+		}
+		wg.Wait()
+
+		// delete project_images data
+		err := service.projectImageRepo.DeleteProjectImageByID(project.ImagesToDelete...)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
