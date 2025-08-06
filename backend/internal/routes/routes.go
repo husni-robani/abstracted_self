@@ -61,6 +61,8 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 
 		authorizedRouter.POST("/projects", handler.ProjectHandler.CreateProject)
 		authorizedRouter.DELETE("/projects/:id", handler.ProjectHandler.DeleteProject)
+		authorizedRouter.PUT("projects/:id", handler.ProjectHandler.UpdateProject)
+
 		authorizedRouter.PUT("/profile", handler.ProfileHandler.UpdateProfile)
 	}
 
