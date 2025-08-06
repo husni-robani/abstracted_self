@@ -1,7 +1,9 @@
 package repositories
 
 import (
+	"context"
 	"database/sql"
+	"time"
 
 	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
@@ -143,6 +145,22 @@ func (repo ProjectRepository) DeleteProjectById(id int) error {
 	}
 
 	logger.Info.Printf("rows affected: %v", rowsAffected)
+
+	return nil
+}
+
+func (repo ProjectRepository) UpdateProjectById(query string) error {
+	timeOut, cancel := context.WithTimeout(context.Background(), 20 * time.Second)
+	defer cancel()
+	
+	result, err := repo.db.ExecContext(timeOut, query)
+	if err != nil {
+		logger.Error.Printf("Query execution is failed: %v", err)
+		return err
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	logger.Info.Printf("update project is succeeded | Rows affected: %d", rowsAffected)
 
 	return nil
 }
