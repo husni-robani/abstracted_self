@@ -3,6 +3,7 @@ import Profile from "../pages/Profile.vue";
 import Login from "../pages/Login.vue";
 import ProfileManagement from "../pages/ProfileManagement.vue";
 import ProjectManagement from "../pages/ProjectManagement.vue";
+import UpdateProject from "../pages/UpdateProject.vue";
 
 // routes
 const routes = [
@@ -24,6 +25,12 @@ const routes = [
     name: "Projects",
     meta: { title: "Projects", requiresAuth: true },
     component: ProjectManagement,
+  },
+  {
+    path: "/admin/projects/:id",
+    name: "Update Project",
+    meta: { title: "Projects", requiresAuth: true },
+    component: UpdateProject,
   },
 ];
 
