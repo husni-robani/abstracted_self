@@ -62,7 +62,7 @@
                   v-for="(src, index) in imagePreviews"
                   :key="index"
                   :src="src"
-                  class="w-48 h-32 object-cover rounded-md"
+                  class="w-52 h-32 object-cover border border-gray-200 rounded-md"
                   alt="Preview"
                 />
               </div>

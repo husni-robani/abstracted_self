@@ -36,7 +36,7 @@
               v-for="(image, index) in project.images"
               :key="image.id"
               :src="asset_endpoint + '/' + image.file_name"
-              class="w-48 h-32 object-cover rounded-md"
+              class="w-52 h-32 object-cover border border-gray-200 rounded-md"
               alt="Preview"
             />
           </div>
@@ -66,7 +66,7 @@
       </div>
       <div>
         <router-link
-          :to="`/`"
+          :to="`/admin/projects/${props.project.id}`"
           class="px-2 text-sm text-center font-mono text-gray-800 hover:underline"
           >Edit</router-link
         >
