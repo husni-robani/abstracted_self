@@ -24,11 +24,12 @@ const props = defineProps({
   text: String,
   to: String,
   icon: String,
+  prefixPath: String,
 });
 
 const route = useRoute();
 
-const isActive = computed(() => route.path === props.to);
+const isActive = computed(() => route.path.startsWith(props.prefixPath));
 
 const activeClasses = "bg-gray-800 text-white";
 const inactiveClasses = "text-gray-400 hover:bg-gray-800 hover:text-white";

@@ -18,7 +18,12 @@
       <nav class="hidden md:flex items-center gap-4">
         <SidebarLink icon="HomeIcon" text="Dashboard" to="/admin/dashboard" />
         <SidebarLink icon="UserIcon" text="Profile" to="/admin/profile" />
-        <SidebarLink icon="FolderIcon" text="Projects" to="/admin/projects" />
+        <SidebarLink
+          icon="FolderIcon"
+          text="Projects"
+          to="/admin/projects"
+          prefix-path="/admin/projects"
+        />
       </nav>
     </header>
 
