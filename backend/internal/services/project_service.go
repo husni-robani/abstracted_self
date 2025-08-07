@@ -93,25 +93,31 @@ func (service ProjectService) UpdateProject(id int, project requests.UpdateProje
 	// Handle NewImages and ImagesToDelete differently
 	
 	// []TechStack data processing for query generation
-	techStack := "{"
-	for i, v := range project.TechStack {
-		if i == len(project.TechStack) - 1{
-			techStack += fmt.Sprintf("%v }", v)
-			break
-		}
+	techStack := "{}"
+	if len(project.TechStack) > 0 {
+		techStack = "{"
+		for i, v := range project.TechStack {
+			if i == len(project.TechStack) - 1{
+				techStack += fmt.Sprintf("%v }", v)
+				break
+			}
 
-		techStack += fmt.Sprintf("%v, ", v)
+			techStack += fmt.Sprintf("%v, ", v)
+		}
 	}
 
 	// []SourceURL data processing for query generation
-	sourceUrl := "{"
-	for i, v := range project.SourceURL {
-		if i == len(project.SourceURL) - 1{
-			sourceUrl += fmt.Sprintf("%v }", v)
-			break
-		}
+	sourceUrl := "{}"
+	if len(project.SourceURL) > 0 {
+		sourceUrl = "{"
+		for i, v := range project.SourceURL {
+			if i == len(project.SourceURL) - 1{
+				sourceUrl += fmt.Sprintf("%v }", v)
+				break
+			}
 
-		sourceUrl += fmt.Sprintf("%v, ", v)
+			sourceUrl += fmt.Sprintf("%v, ", v)
+		}
 	}
 
 
