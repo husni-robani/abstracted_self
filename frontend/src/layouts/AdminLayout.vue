@@ -16,8 +16,18 @@
 
       <!-- Desktop nav -->
       <nav class="hidden md:flex items-center gap-4">
-        <SidebarLink icon="HomeIcon" text="Dashboard" to="/admin/dashboard" />
-        <SidebarLink icon="UserIcon" text="Profile" to="/admin/profile" />
+        <SidebarLink
+          icon="HomeIcon"
+          text="Dashboard"
+          to="/admin/dashboard"
+          prefix-path="/admin/dashboard"
+        />
+        <SidebarLink
+          icon="UserIcon"
+          text="Profile"
+          to="/admin/profile"
+          prefix-path="/admin/profile"
+        />
         <SidebarLink
           icon="FolderIcon"
           text="Projects"
