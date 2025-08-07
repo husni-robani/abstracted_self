@@ -110,7 +110,7 @@
         <!-- button save -->
         <div class="mt-6 text-right space-x-2">
           <button
-            @click="clearUpdate"
+            @click="cancel"
             class="bg-gray-800 text-white px-5 py-2 rounded-md hover:bg-gray-900 font-mono hover:cursor-pointer"
           >
             Cancel
@@ -269,6 +269,12 @@ async function clearUpdate() {
   await getProject();
   project.new_images = [];
   project.images_to_delete = [];
+}
+
+function cancel() {
+  clearUpdate();
+
+  router.push("/admin/projects");
 }
 
 onMounted(() => {
