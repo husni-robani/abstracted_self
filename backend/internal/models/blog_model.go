@@ -3,9 +3,9 @@ package models
 import "mime/multipart"
 
 type Blog struct {
-	Id int `json:"id,omitempty" validate:"numeric"`
+	Id int `json:"id" validate:"numeric"`
 	Title string `json:"title" form:"title" validate:"required"`
 	URL string	`json:"url" form:"url" validate:"required,url"`
-	Image string `json:"image,omitempty" form:"image,omitempty"`
+	Image string `json:"image" form:"image"`
 	ImageFile *multipart.FileHeader
 }

@@ -1,10 +1,10 @@
 package models
 
 type ProjectImage struct {
-	Id int `json:"id,omitempty"`
-	ProjectId int `json:"project_id,omitempty"`
-	FileName string `json:"file_name,omitempty"`
-	FileSize int `json:"file_size,omitempty"`
-	MimeType string `json:"mime_type,omitempty"`
-	ImageURL string `json:"image_url,omitempty"`
+	Id int `json:"id"`
+	ProjectId int `json:"project_id"`
+	FileName string `json:"file_name"`
+	FileSize int `json:"file_size"`
+	MimeType string `json:"mime_type"`
+	ImageURL string `json:"image_url"`
 }
