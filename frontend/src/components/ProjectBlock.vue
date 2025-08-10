@@ -1,17 +1,21 @@
 <template>
   <li
     :class="[
-      'flex flex-col justicy items-center w-full lg:items-start lg:w-full',
+      'flex flex-col justify items-center w-full lg:items-start lg:w-full',
       isEven ? 'lg:flex-row' : 'lg:flex-row-reverse',
     ]"
   >
-    <!-- image -->
-    <div class="w-full max-w-xl">
-      <div
-        class="bg-cover bg-center aspect-w-16 aspect-h-9 rounded-2xl border"
-        :style="{ backgroundImage: `url(${props.image_url})` }"
-      ></div>
+    <!-- Image -->
+    <div
+      class="w-full max-w-xl relative overflow-hidden rounded-2xl border border-gray-200 aspect-[16/9]"
+    >
+      <ImageSlider
+        :image_urls="props.image_urls"
+        :interval="5000"
+        :transitionTime="1000"
+      />
     </div>
+
     <!-- content -->
     <div
       :class="[
@@ -19,26 +23,23 @@
         isEven ? 'right-0 lg:text-right' : 'left-0 lg:text-left',
       ]"
     >
-      <!-- title -->
       <div
         :class="['flex flex-col', isEven ? 'lg:items-end' : 'lg:items-start']"
       >
-        <p class="text-sm md:text-sm font-roboto font-extralight text-gray-400">
+        <p class="text-sm font-roboto font-extralight text-gray-400">
           featured project
         </p>
         <h1 class="text-lg md:text-xl font-bold lg:w-1/2">
           {{ props.project_name }}
         </h1>
       </div>
-      <!-- description -->
+
       <div
         class="mt-2 lg:bg-gray-100 lg:p-2 lg:rounded-md lg:shadow-md lg:mt-4 text-base"
       >
-        <p>
-          {{ props.description }}
-        </p>
+        <p class="line-clamp-6">{{ props.description }}</p>
       </div>
-      <!-- stack -->
+
       <div
         :class="[
           'flex flex-row gap-2 bg-gray-100 p-2 rounded-md shadow-sm lg:bg-transparent lg:p-0 lg:shadow-none lg:rounded-none mt-2 md:mt-4',
@@ -51,17 +52,27 @@
             isEven ? 'justify-end' : 'justify-start',
           ]"
         >
-          <span v-for="tech in props.tech_stack">{{ tech }}</span>
+          <span v-for="tech in props.tech_stack" :key="tech">{{ tech }}</span>
         </span>
       </div>
-      <!-- link -->
+
       <div
         :class="[
-          'flex  gap-2 mt-2 lg:mt-4',
+          'flex gap-2 mt-2 lg:mt-4',
           isEven ? 'lg:flex-row-reverse' : 'lg:flex-row',
         ]"
       >
-        <a v-for="url in props.source_url" :href="url" target="_blank">
+        <a v-show="props.project_url !== ''">
+          <ArrowTopRightOnSquareIcon
+            class="text-gray-800 hover:text-gray-500 hover:cursor-pointer w-[30px] h-[30px]"
+          />
+        </a>
+        <a
+          v-for="(url, idx) in props.source_url"
+          :key="idx"
+          :href="url"
+          target="_blank"
+        >
           <GithubIcon />
         </a>
       </div>
@@ -70,35 +81,20 @@
 </template>
 
 <script setup>
+import {
+  ArrowTopRightOnSquareIcon,
+  ComputerDesktopIcon,
+} from "@heroicons/vue/24/outline";
 import GithubIcon from "../assets/GithubIcon.vue";
+import ImageSlider from "./ImageSlider.vue";
+
 const props = defineProps({
-  isEven: {
-    type: Boolean,
-    required: true,
-  },
-  project_name: {
-    type: String,
-    required: true,
-  },
-  description: {
-    type: String,
-    required: true,
-  },
-  tech_stack: {
-    type: Array,
-    required: true,
-  },
-  source_url: {
-    type: Array,
-    required: true,
-  },
-  project_url: {
-    type: String,
-    required: true,
-  },
-  image_url: {
-    type: String,
-    required: true,
-  },
+  isEven: Boolean,
+  project_name: String,
+  description: String,
+  tech_stack: Array,
+  source_url: Array,
+  project_url: String,
+  image_urls: Array,
 });
 </script>
