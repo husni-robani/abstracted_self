@@ -4,6 +4,7 @@ import Login from "../pages/Login.vue";
 import ProfileManagement from "../pages/ProfileManagement.vue";
 import ProjectManagement from "../pages/ProjectManagement.vue";
 import UpdateProject from "../pages/UpdateProject.vue";
+import Dashboard from "../pages/Dashboard.vue";
 
 // routes
 const routes = [
@@ -19,6 +20,7 @@ const routes = [
     path: "/admin/dashboard",
     name: "Dashboard",
     meta: { title: "Dashboard", requiresAuth: true },
+    component: Dashboard,
   },
   {
     path: "/admin/projects",
