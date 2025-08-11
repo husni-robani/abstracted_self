@@ -81,7 +81,7 @@ const login = async () => {
     // success
     const token = jsonResponse.data.token;
     localStorage.setItem("token", token);
-    router.push("/admin/profile");
+    router.push("/admin/dashboard");
   } catch (err) {
     error.value =
       err.message === "invalid-json"
