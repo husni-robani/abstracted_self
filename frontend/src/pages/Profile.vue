@@ -3,11 +3,11 @@
     <!-- Hero Section -->
     <Hero></Hero>
     <!-- Bio Section -->
-    <Bio></Bio>
+    <Bio id="about"></Bio>
     <!-- Project Section -->
-    <Project></Project>
+    <Project id="projects"></Project>
     <!-- Contact Section -->
-    <Contact></Contact>
+    <Contact id="contact"></Contact>
   </ProfileLayout>
 </template>
 
