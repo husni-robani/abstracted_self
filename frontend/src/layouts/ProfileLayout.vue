@@ -1,52 +1,10 @@
 <template>
   <div class="min-h-screen">
     <!-- //navbar -->
-    <nav
-      ref="navbar"
-      :class="[
-        'h-16 top-0 left-0 right-0 fixed flex items-center justify-between px-20 py-5 md:flex-row-reverse p-3 z-20 bg-white transition-all duration-300',
-        isHidden ? '-translate-y-full' : 'translate-y-0',
-        hasScrolled
-          ? 'shadow-md border-b border-gray-200'
-          : 'shadow-none border-b-white',
-      ]"
-    >
-      <!-- Right: Resume -->
-      <div class="flex flex-row items-center gap-8 mx-auto md:m-0">
-        <div class="flex flex-col items-center">
-          <div class="peer text-gray-500 font-medium hover:text-gray-800">
-            <a
-              :href="asset_document_endpoint + '/' + resume_file_name"
-              target="_blank"
-              class="py-1 px-6"
-              >Resume</a
-            >
-          </div>
-          <div
-            class="transition-transform duration-500 peer-hover:scale-150 w-20 border-b-2 border-solid border-gray-500 peer-hover:border-gray-800"
-          ></div>
-        </div>
-      </div>
-
-      <!-- Left: Menu Links -->
-      <div class="flex gap-8">
-        <router-link
-          to="/profile"
-          class="text-gray-600 hover:text-gray-900 font-medium transition-colors duration-200"
-        >
-          Profile
-        </router-link>
-        <router-link
-          to="/notes"
-          class="text-gray-600 hover:text-gray-900 font-medium transition-colors duration-200"
-        >
-          My Notes
-        </router-link>
-      </div>
-    </nav>
+    <ProfileNavbar />
     <!-- //content -->
     <div class="relative lg:flex z-0 h-full">
-      <!-- App -->
+      <!-- Main Content -->
       <div class="w-11/12 mx-auto lg:w-10/12 p-5">
         <main><slot></slot></main>
       </div>
@@ -188,52 +146,5 @@
   </div>
 </template>
 <script setup>
-import { onMounted, onBeforeUnmount, ref } from "vue";
-
-const asset_document_endpoint =
-  import.meta.env.VITE_API_URL + import.meta.env.VITE_ASSET_DOCUMENTS_ENDPOINT;
-
-const api_endpoint =
-  import.meta.env.VITE_API_URL + import.meta.env.VITE_GET_PROFILEDATA_ENDPOINT;
-
-const resume_file_name = ref("");
-const isHidden = ref(false);
-const hasScrolled = ref(false);
-let lastScrollTop = 0;
-
-onMounted(async () => {
-  // Fetch resume
-  try {
-    const response = await fetch(api_endpoint + "?resume=true");
-    if (!response.ok) throw new Error(`Failed: ${response.status}`);
-    const jsonResponse = await response.json();
-    resume_file_name.value = jsonResponse.data.resume_file_name;
-  } catch (e) {
-    console.log(e);
-  }
-
-  // Scroll listener
-  window.addEventListener("scroll", handleScroll);
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener("scroll", handleScroll);
-});
-
-function handleScroll() {
-  const currentScroll =
-    window.pageYOffset || document.documentElement.scrollTop;
-
-  // Show shadow + border after scrolling down 1px
-  hasScrolled.value = currentScroll > 0;
-
-  // Hide navbar when scrolling down
-  if (currentScroll > lastScrollTop && currentScroll > 50) {
-    isHidden.value = true;
-  } else {
-    isHidden.value = false;
-  }
-
-  lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
-}
+import ProfileNavbar from "../pages/partials/ProfileNavbar.vue";
 </script>
