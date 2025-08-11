@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col lg:max-w-4xl mx-auto mt-64 mb-24">
+  <div class="flex flex-col lg:max-w-4xl mx-auto mt-64 mb-64">
     <div class="flex flex-col item-center justify-center mb-14">
       <h1 class="mx-auto text-3xl md:text-5xl mb-6 font-roboto text-gray-700">
         Get In Touch
