@@ -1,5 +1,5 @@
 <template>
-  <div class="lg:max-w-4xl mx-auto">
+  <div class="lg:max-w-4xl mx-auto mt-52">
     <div class="w-full lg:max-w-md h-5 border-b-2 border-gray-400 mb-6">
       <span
         class="bg-white pr-4 font-bold text-gray-700 font-roboto text-2xl md:text-4xl"
