@@ -41,7 +41,7 @@ const projects = ref([]);
 // fetch projects data from API
 onMounted(async () => {
   try {
-    const response = await fetch(api_endpoint);
+    const response = await fetch(api_endpoint + "?cache=true");
 
     if (!response.ok) {
       throw new Error(

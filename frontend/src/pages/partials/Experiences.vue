@@ -61,7 +61,7 @@ const experiences = reactive([]);
 
 async function getAllExperiences() {
   try {
-    const res = await fetch(getExperiencesEndpoint);
+    const res = await fetch(getExperiencesEndpoint + "?cache=true");
     const fetchData = await res.json();
 
     // Clear the reactive array first
