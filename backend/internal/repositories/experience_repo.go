@@ -22,7 +22,7 @@ func NewExperienceRepository(db *sql.DB) ExperienceRepo {
 }
 
 func (repo ExperienceRepo) GetAllExperiences() ([]models.Experience, error) {
-	query := "SELECT id, job_title, company_name, work_place, start_date, end_date, description, accomplishments from experiences"
+	query := "SELECT id, job_title, company_name, work_place, start_date, end_date, description, accomplishments FROM experiences ORDER BY start_date desc"
 
 	rows, err := repo.db.Query(query)
 	if err != nil {
