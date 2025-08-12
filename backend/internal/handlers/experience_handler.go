@@ -27,12 +27,17 @@ func NewExperienceHandler(service services.ExperienceService) ExperienceHandler 
 
 func (handler ExperienceHandler) GetExperiences(c *gin.Context) {
 	experiences, err := handler.service.GetAllExperiences()
-	
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "failed get all experiences", nil)
 		return
 	}
 
+	isCache := c.Request.URL.Query().Get("cache") == "true"
+
+	c.Header("Content-Type", "application/json")
+	if isCache {
+		c.Header("Cache-Control", "public, max-age=86400")
+	}
 	response.Success(c, http.StatusOK, "get all experiences successful", experiences)
 }
 

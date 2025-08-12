@@ -63,10 +63,16 @@ func (handler ProjectHandler) CreateProject(c *gin.Context) {
 
 func (handler ProjectHandler) GetProjects(c *gin.Context) {
 	projects, err := handler.service.GetAllProjectsWithImages()
-
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
 		return
+	}
+
+	isCache := c.Request.URL.Query().Get("cache") == "true"
+
+	c.Header("Content-Type", "application/json")
+	if isCache {
+		c.Header("Cache-Control", "public, max-age=86400")
 	}
 
 	response.Success(c, http.StatusOK, "get projects successful", projects)
