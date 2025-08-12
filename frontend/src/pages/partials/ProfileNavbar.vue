@@ -40,6 +40,17 @@
         About
       </a>
       <a
+        href="#experiences"
+        :class="[
+          'font-medium transition-colors duration-200',
+          activeSection === 'experiences'
+            ? 'text-gray-500'
+            : 'text-gray-300 hover:text-gray-900',
+        ]"
+      >
+        Experiences
+      </a>
+      <a
         href="#projects"
         :class="[
           'font-medium transition-colors duration-200',
