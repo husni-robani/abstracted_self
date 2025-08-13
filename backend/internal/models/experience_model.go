@@ -11,4 +11,5 @@ type Experience struct {
 	EndDate time.Time `json:"end_date"`
 	Description string `json:"description"`
 	Accomplishments []string `json:"accomplishments"`
+	TechStack []string `json:"tech_stack"`
 }
