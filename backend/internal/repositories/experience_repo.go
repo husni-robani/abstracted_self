@@ -22,7 +22,7 @@ func NewExperienceRepository(db *sql.DB) ExperienceRepo {
 }
 
 func (repo ExperienceRepo) GetAllExperiences() ([]models.Experience, error) {
-	query := "SELECT id, job_title, company_name, work_place, start_date, end_date, description, accomplishments FROM experiences ORDER BY start_date desc"
+	query := "SELECT id, job_title, company_name, work_place, start_date, end_date, description, accomplishments, tech_stack FROM experiences ORDER BY start_date desc"
 
 	rows, err := repo.db.Query(query)
 	if err != nil {
@@ -34,7 +34,7 @@ func (repo ExperienceRepo) GetAllExperiences() ([]models.Experience, error) {
 	for rows.Next() {
 		experience := models.Experience{}
 
-		err := rows.Scan(&experience.Id, &experience.JobTitle, &experience.CompanyName, &experience.WorkPlace, &experience.StartDate, &experience.EndDate, &experience.Description, pq.Array(&experience.Accomplishments))
+		err := rows.Scan(&experience.Id, &experience.JobTitle, &experience.CompanyName, &experience.WorkPlace, &experience.StartDate, &experience.EndDate, &experience.Description, pq.Array(&experience.Accomplishments), pq.Array(&experience.TechStack))
 
 		if err != nil {
 			logger.Error.Printf("failed scan row: %v", err)
