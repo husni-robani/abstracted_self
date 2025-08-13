@@ -88,10 +88,10 @@ func (repo ExperienceRepo) UpdateExperience(id int, experience map[string]any) e
 }
 
 func (repo ExperienceRepo) GetExperienceById(id int) ( models.Experience, error) {
-	row := repo.db.QueryRow("SELECT id, job_title, company_name, work_place, start_date, end_date, description, accomplishments FROM experiences WHERE id = $1", id)
+	row := repo.db.QueryRow("SELECT id, job_title, company_name, work_place, start_date, end_date, description, accomplishments, tech_stack FROM experiences WHERE id = $1", id)
 
 	var experience models.Experience
-	err := row.Scan(&experience.Id, &experience.JobTitle, &experience.CompanyName, &experience.WorkPlace, &experience.StartDate, &experience.EndDate, &experience.Description, pq.Array(&experience.Accomplishments))
+	err := row.Scan(&experience.Id, &experience.JobTitle, &experience.CompanyName, &experience.WorkPlace, &experience.StartDate, &experience.EndDate, &experience.Description, pq.Array(&experience.Accomplishments), pq.Array(&experience.TechStack))
 
 	if err != nil {
 		logger.Error.Printf("failed scan row to experience model: %v", err)
