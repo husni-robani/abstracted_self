@@ -48,7 +48,7 @@ func (repo ExperienceRepo) GetAllExperiences() ([]models.Experience, error) {
 }
 
 func (repo ExperienceRepo) CreateExperience(experience requests.CreateExperienceRequest) error {
-	result, err := repo.db.Exec("INSERT INTO experiences (job_title, company_name, work_place, start_date, end_date, description, accomplishments) VALUES ($1, $2, $3, $4, $5, $6, $7)", experience.JobTitle, experience.CompanyName, experience.WorkPlace, experience.StartDate, experience.EndDate, experience.Description, pq.Array(experience.Accomplishments))
+	result, err := repo.db.Exec("INSERT INTO experiences (job_title, company_name, work_place, start_date, end_date, description, accomplishments, tech_stack) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", experience.JobTitle, experience.CompanyName, experience.WorkPlace, experience.StartDate, experience.EndDate, experience.Description, pq.Array(experience.Accomplishments), pq.Array(experience.TechStack))
 
 	if err != nil {
 		logger.Error.Printf("insert experience failed: %v", err)

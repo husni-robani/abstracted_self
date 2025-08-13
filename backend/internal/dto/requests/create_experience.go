@@ -8,4 +8,5 @@ type CreateExperienceRequest struct {
 	EndDate string `json:"end_date" validate:"required,datetime=2006-01-02"`
 	Description string `json:"description"`
 	Accomplishments []string `json:"accomplishments"`
+	TechStack []string `json:"tech_stack"`
 }
