@@ -67,15 +67,7 @@ async function getAllExperiences() {
     // Clear the reactive array first
     experiences.length = 0;
 
-    // Add `tech_stack` to each experience
-    await fetchData.data.forEach((exp) => {
-      console.log("loop");
-      experiences.push({
-        ...exp,
-        tech_stack: ["Laravel", "Vue.js", "TailwindCSS", "MySQL"], // Dummy tech_stack data
-      });
-    });
-    // Object.assign(experiences, fetchData.data);
+    Object.assign(experiences, fetchData.data);
   } catch (err) {
     console.log(err);
   }
