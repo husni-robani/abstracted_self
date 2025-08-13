@@ -63,17 +63,34 @@ func (service ExperienceService) UpdateExperience(id int, experience requests.Up
 	}
 
 	// accomplishments
-	accomplishments := "{"
-	for i, v := range experience.Accomplishments {
-		if i == len(experience.Accomplishments) - 1{
-			accomplishments += fmt.Sprintf("%v }", v)
-			break
+	if experience.Accomplishments != nil {
+		accomplishments := "{"
+		for i, v := range experience.Accomplishments {
+			if i == len(experience.Accomplishments) - 1{
+				accomplishments += fmt.Sprintf("%v }", v)
+				break
+			}
+
+			accomplishments += fmt.Sprintf("%v, ", v)
 		}
 
-		accomplishments += fmt.Sprintf("%v, ", v)
+		values["accomplishments"] = accomplishments
 	}
 
-	values["accomplishments"] = accomplishments
+	// tech_stack
+	if experience.TechStack != nil {
+		tech_stack := "{"
+		for i, v := range experience.TechStack {
+			if i == len(experience.TechStack) - 1{
+				tech_stack += fmt.Sprintf("%v }", v)
+				break
+			}
+	
+			tech_stack += fmt.Sprintf("%v, ", v)
+		}
+	
+		values["tech_stack"] = tech_stack
+	}
 
 
 	// update to database

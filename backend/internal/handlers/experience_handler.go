@@ -92,20 +92,6 @@ func (handler ExperienceHandler) UpdateExperience(c *gin.Context) {
 		return
 	}
 
-	// validate request
-	invalidFields, err := utils.ValidateStruct(updateExperienceRequest)
-	if err != nil {
-		logger.Error.Println(err.Error())
-		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
-		return
-	}
-		// return validation errors
-	if len(invalidFields) >= 1 {
-		logger.Info.Printf("invalid request body: %v", invalidFields)
-		response.Error(c, http.StatusBadRequest, "invalid data", invalidFields)
-		return
-	}
-	
 	// insert to database
 	if err := handler.service.UpdateExperience(id, updateExperienceRequest); err != nil {
 		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
