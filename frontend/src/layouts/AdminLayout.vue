@@ -34,6 +34,12 @@
           to="/admin/projects"
           prefix-path="/admin/projects"
         />
+        <SidebarLink
+          icon="FolderIcon"
+          text="Experiences"
+          to="/admin/experiences"
+          prefix-path="/admin/experiences"
+        />
       </nav>
     </header>
 

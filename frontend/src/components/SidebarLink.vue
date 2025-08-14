@@ -4,8 +4,8 @@
     class="group flex items-center gap-3 py-2 px-3 rounded-md transition font-medium"
     :class="isActive ? activeClasses : inactiveClasses"
   >
-    <component :is="iconComponent" class="w-5 h-5" />
-    <span class="font-mono">{{ text }}</span>
+    <component :is="iconComponent" class="w-4 h-4" />
+    <span class="font-mono text-sm">{{ text }}</span>
   </RouterLink>
 </template>
 
