@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/lib/pq"
+)
 
 type Experience struct {
 	Id int `json:"id"`
@@ -8,7 +12,7 @@ type Experience struct {
 	CompanyName string `json:"company_name"`
 	WorkPlace string `json:"work_place"`
 	StartDate time.Time `json:"start_date"`
-	EndDate time.Time `json:"end_date"`
+	EndDate pq.NullTime `json:"end_date"`
 	Description string `json:"description"`
 	Accomplishments []string `json:"accomplishments"`
 	TechStack []string `json:"tech_stack"`
