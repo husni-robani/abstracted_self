@@ -5,6 +5,7 @@ import ProfileManagement from "../pages/ProfileManagement.vue";
 import ProjectManagement from "../pages/ProjectManagement.vue";
 import UpdateProject from "../pages/UpdateProject.vue";
 import Dashboard from "../pages/Dashboard.vue";
+import ExperienceManagement from "../pages/ExperienceManagement.vue";
 
 // routes
 const routes = [
@@ -33,6 +34,12 @@ const routes = [
     name: "Update Project",
     meta: { title: "Projects", requiresAuth: true },
     component: UpdateProject,
+  },
+  {
+    path: "/admin/experiences",
+    name: "Experiences",
+    meta: { title: "Experiences", requiresAuth: true },
+    component: ExperienceManagement,
   },
 ];
 
