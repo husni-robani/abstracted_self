@@ -13,7 +13,7 @@
           @click="showForm = !showForm"
           class="flex items-center gap-1 text-sm text-gray-900 px-1 py-1 border-b font-mono hover:cursor-pointer mb-2"
         >
-          <span>New Project</span>
+          <span>Add Experience</span>
           <!-- Conditional icon -->
           <ChevronDownIcon
             v-if="showForm"
