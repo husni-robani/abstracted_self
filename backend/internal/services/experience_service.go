@@ -55,7 +55,11 @@ func (service ExperienceService) UpdateExperience(id int, experience requests.Up
 	}
 
 	if experience.EndDate != nil {
-		values["end_date"] = *experience.EndDate
+		if *experience.EndDate == "" {
+			values["end_date"] = nil
+		}else {
+			values["end_date"] = *experience.EndDate
+		}
 	}
 
 	if experience.Description != nil {

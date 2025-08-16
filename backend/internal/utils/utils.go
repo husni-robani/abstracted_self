@@ -79,10 +79,19 @@ func GenerateSingleUpdateQuery(tableName string, values map[string]any, conditio
 	for column, value := range values{
 		i++
 		if i == len(values) {
-			query += fmt.Sprintf(" %s = '%s' ", column, value)	
+			if value != nil {
+				query += fmt.Sprintf(" %s = '%s' ", column, value)	
+			}else {
+				query += fmt.Sprintf(" %s = NULL ", column)
+			}
 			break
 		}
-		query += fmt.Sprintf(" %s = '%s',", column, value)
+
+		if value != nil {
+			query += fmt.Sprintf(" %s = '%s',", column, value)
+		}else {
+			query += fmt.Sprintf(" %s = NULL,", column, )
+		}
 	}
 
 	query += condition
