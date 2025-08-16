@@ -18,6 +18,7 @@
       >
         {{ tag }}
         <button
+          type="button"
           @click="removeTag(index)"
           class="text-red-600 hover:text-red-800 hover:cursor-pointer text-sm"
         >
