@@ -13,12 +13,21 @@
           {{ formatEndDate(experience.end_date) }}
         </p>
       </div>
-      <button
-        @click="$emit('delete')"
-        class="text-red-500 hover:text-red-700 font-mono text-sm hover:cursor-pointer"
-      >
-        Delete
-      </button>
+      <!-- delete & edit buttons -->
+      <div>
+        <button
+          @click="openEditExperienceModal"
+          class="px-2 text-sm text-center font-mono text-gray-800 hover:underline hover:cursor-pointer"
+        >
+          Edit
+        </button>
+        <button
+          @click="$emit('delete')"
+          class="px-2 text-center text-sm font-mono text-red-500 hover:underline hover:cursor-pointer"
+        >
+          Delete
+        </button>
+      </div>
     </div>
     <div class="mt-2 text-sm font-mono text-gray-700">
       {{ experience.description }}
@@ -39,11 +48,21 @@
         {{ tech }}
       </span>
     </div>
+    <!-- edit experience form modal -->
+    <Modal :show="showModal" @close="closeEditExperienceModal">
+      <EditExperienceForm
+        v-if="selectedExperience"
+        :experience="experience"
+        @saved="handleSaved"
+      />
+    </Modal>
   </div>
 </template>
 
 <script setup>
-import { defineEmits } from "vue";
+import { defineEmits, ref } from "vue";
+import Modal from "../components/Modal.vue";
+import EditExperienceForm from "../pages/partials/EditExperienceForm.vue";
 
 defineProps({
   experience: {
@@ -51,6 +70,12 @@ defineProps({
     required: true,
   },
 });
+
+const updateExperienceEndpoint =
+  import.meta.env.VITE_API_URL +
+  import.meta.env.VITE_UPDATE_EXPERIENCE_ENDPOINT;
+const showModal = ref(false);
+const selectedExperience = ref(null);
 
 const emit = defineEmits(["refetch", "delete"]);
 
@@ -66,5 +91,49 @@ function formatEndDate(date) {
   }
 
   return "present";
+}
+
+function closeEditExperienceModal() {
+  showModal.value = false;
+  selectedExperience.value = null;
+}
+
+function openEditExperienceModal(exp) {
+  selectedExperience.value = { ...exp }; // pass copy to form
+  showModal.value = true;
+}
+
+function closeModal() {
+  showModal.value = false;
+  selectedExperience.value = null;
+}
+
+async function handleSaved(updated) {
+  if (updated.end_date == null) {
+    updated.end_date = "";
+  }
+  const token = localStorage.getItem("token");
+  try {
+    const res = await fetch(updateExperienceEndpoint + "/" + updated.id, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(updated),
+    });
+
+    if (!res.ok) {
+      const resJson = await res.json();
+      throw new Error(`update failed: ${resJson.message}`);
+    }
+
+    alert("Update successfull!");
+  } catch (e) {
+    console.error(e);
+    alert(e);
+  }
+
+  closeModal();
 }
 </script>
