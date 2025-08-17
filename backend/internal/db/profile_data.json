@@ -8,6 +8,37 @@
     "Junior Developer",
     "Backend engineer"
   ],
-  "resume_file_name": "resume.pdf",
-  "skills": ["Go", "PostgreSQL", "gRPC"]
+  "resume_file_name": "6c1cc65f-21c2-43ab-b808-965459761015.pdf",
+  "skill_set": [
+    {
+      "type_name": "Programming Language",
+      "skill_items": [
+        {
+          "name": "Go",
+          "icon_filename": "go_icon.svg",
+          "is_most_used": true
+        },
+        {
+          "name": "Javascript",
+          "icon_filename": "js_icon.svg",
+          "is_most_used": true
+        }
+      ]
+    },
+    {
+      "type_name": "Web Dev",
+      "skill_items": [
+        {
+          "name": "Gin",
+          "icon_filename": "gin_icon.svg",
+          "is_most_used": true
+        },
+        {
+          "name": "Flask",
+          "icon_filename": "flask_icon.svg",
+          "is_most_used": false
+        }
+      ]
+    }
+  ]
 }
