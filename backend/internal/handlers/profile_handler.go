@@ -30,7 +30,7 @@ func (handler ProfileHandler) GetProfileData(c *gin.Context) {
 		return
 	}
 
-	profileData, err := handler.Service.GetProfileData(req.Name, req.Summary, req.Bio, req.Taglines, req.Resume, req.Skills)
+	profileData, err := handler.Service.GetProfileData(req.Name, req.Summary, req.Bio, req.Taglines, req.Resume, req.SkillSet)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Failed to get profile name", err)
 		return

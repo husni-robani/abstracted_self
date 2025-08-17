@@ -6,6 +6,6 @@ type GetProfileRequest struct {
 	Bio bool `form:"bio"`
 	Taglines bool `form:"taglines"`
 	Resume bool `form:"resume"`
-	Skills bool `form:"skills"`
+	SkillSet bool `form:"skill_set"`
 	Cache bool `form:"cache"`
 }
