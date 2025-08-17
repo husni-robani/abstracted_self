@@ -42,7 +42,7 @@ func (handler ProfileHandler) GetProfileData(c *gin.Context) {
 	}
 
 
-	response.Success(c, http.StatusOK, "Get profile name success", profileData)
+	response.Success(c, http.StatusOK, "Get profile data success", profileData)
 }
 
 func (handler ProfileHandler) UpdateProfile(c *gin.Context){
@@ -93,4 +93,43 @@ func (handler ProfileHandler) UpdateProfile(c *gin.Context){
 	}
 
 	response.Success(c, http.StatusOK, "Update profile successful!", nil)
+}
+
+func (handler ProfileHandler) AddSkillType(c *gin.Context) {
+	var reqBody requests.AddProfileSkillSetType
+
+	// bind request body
+	if err := c.ShouldBindJSON(&reqBody); err != nil {
+		logger.Error.Printf("Bind request body failed: %#v", err)
+		response.Error(c, http.StatusBadRequest, "Bad Request", nil)
+		return
+	}
+
+	// validate request body data
+	invalidFieldErrors, err := utils.ValidateStruct(reqBody)
+	if err != nil {
+		logger.Error.Printf("Validate request body failed: %#v", err)
+		response.Error(c, http.StatusInternalServerError, "Internal Server Error", nil)
+		return
+	}
+
+	if len(invalidFieldErrors) >= 1 {
+		logger.Info.Printf("Invalid body request: %#v", invalidFieldErrors)
+		response.Error(c, http.StatusBadRequest, "Invalid Data", invalidFieldErrors)
+		return
+	}
+
+	// add skill type
+	if err := handler.Service.AddSkillSetType(reqBody); err != nil {
+		if err == services.ErrSkillTypeDuplicate {
+			logger.Info.Println(err)
+			response.Error(c, http.StatusConflict, err.Error(), nil)
+			return
+		}
+		logger.Error.Printf("Add profile skill type failed: %#v", err)
+		response.Error(c, http.StatusInternalServerError, "Internal Server Error", nil)
+		return
+	}
+
+	response.Success(c, http.StatusOK, "add profile kill type successful!", nil)
 }
