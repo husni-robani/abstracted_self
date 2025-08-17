@@ -9,8 +9,23 @@
         <div class="flex flex-col w-full gap-4">
           <!-- name -->
           <InputField label="Name" v-model="profile.name" />
+          <!-- summary -->
+          <TextAreaField label="Summary" v-model="profile.summary" :rows="3" />
+          <!-- bio -->
+          <TextAreaField label="Bio" v-model="profile.bio" :rows="7" />
+        </div>
+        <!-- resume upload and Taglines Form -->
+        <div class="flex flex-col md:flex-row gap-6">
+          <!-- Taglines -->
+          <div class="w-full h-fit">
+            <TagInput
+              label="Taglines"
+              v-model="profile.taglines"
+              placeholder="type new tagLine ..."
+            />
+          </div>
           <!-- resume upload & view -->
-          <div class="flex items-center gap-4">
+          <div class="flex items-center gap-4 w-full h-fit">
             <FileUpload
               label="Resume"
               v-model:model-value="profile.resume_file"
@@ -24,29 +39,6 @@
               <ArrowTopRightOnSquareIcon class="w-4 h-4" />
               View
             </a>
-          </div>
-          <!-- summary -->
-          <TextAreaField label="Summary" v-model="profile.summary" :rows="3" />
-          <!-- bio -->
-          <TextAreaField label="Bio" v-model="profile.bio" :rows="7" />
-        </div>
-        <!-- Skills and Taglines Form -->
-        <div class="flex flex-col md:flex-row gap-6">
-          <!-- Skills -->
-          <div class="w-full h-fit">
-            <TagInput
-              label="Skills"
-              v-model="profile.skills"
-              placeholder="type new skills ..."
-            />
-          </div>
-          <!-- Taglines -->
-          <div class="w-full h-fit">
-            <TagInput
-              label="Taglines"
-              v-model="profile.taglines"
-              placeholder="type new tagLine ..."
-            />
           </div>
         </div>
         <div class="mt-6 text-right">
@@ -78,7 +70,6 @@ const profile = reactive({
   resume_file: null,
   resume_file_name: "",
   taglines: [],
-  skills: [],
 });
 
 const original_profile = reactive({});
@@ -95,7 +86,7 @@ onMounted(async () => {
   try {
     const response = await fetch(
       profile_endpoint +
-        "?name=true&summary=true&bio=true&taglines=true&resume=true&skills=true"
+        "?name=true&summary=true&bio=true&taglines=true&resume=true"
     );
 
     const fetchedData = await response.json();
@@ -136,7 +127,7 @@ async function saveProfile() {
   const formData = new FormData();
 
   for (const key in changedFields) {
-    if (key === "taglines" || key === "skills") {
+    if (key === "taglines") {
       for (const i in changedFields[key]) {
         formData.append(key, changedFields[key][i]);
       }
