@@ -1,8 +1,10 @@
 package services
 
 import (
+	"errors"
 	"mime/multipart"
 	"path/filepath"
+	"slices"
 
 	"github.com/google/uuid"
 	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
@@ -11,6 +13,8 @@ import (
 	"github.com/husni-robani/abstracted_self/backend/internal/repositories"
 	"github.com/husni-robani/abstracted_self/backend/internal/utils"
 )
+
+var ErrSkillTypeDuplicate = errors.New("skill type already exists")
 
 type ProfileService struct {
 	Repository repositories.ProfileRepository
@@ -121,4 +125,29 @@ func saveNewResume(resumeFile *multipart.FileHeader) (file_name string, err erro
 	}
 
 	return resumeFile.Filename, nil
+}
+
+func (service ProfileService) AddSkillSetType(dataRequest requests.AddProfileSkillSetType) (error) {
+	originalProfileData, err := service.Repository.ReadProfileData()
+	if err != nil {
+		return err
+	}
+
+	// Check is the type_name already exists
+	typeNames, err := service.Repository.GetAllSkillTypeName()
+	if err != nil {
+		return err
+	}
+	if slices.Contains(typeNames, dataRequest.TypeName) {
+		return ErrSkillTypeDuplicate
+	}
+
+	// append the new type name to SkillSet
+	originalProfileData.SkillSet = append(originalProfileData.SkillSet, models.SkillType{TypeName: dataRequest.TypeName, SkillItems: []models.Skill{}})
+
+	if err := service.Repository.WriteProfileData(originalProfileData); err != nil {
+		return err
+	}
+
+	return nil
 }
