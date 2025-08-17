@@ -95,9 +95,6 @@ func (service ProfileService) UpdateProfileData(dataRequest requests.UpdateProfi
 	if dataRequest.Taglines != nil {
 		originalProfile.Taglines = dataRequest.Taglines
 	}
-	if dataRequest.Skills != nil {
-		originalProfile.Skills = dataRequest.Skills
-	}
 
 	// save new profile
 	if err := service.Repository.WriteProfileData(originalProfile); err != nil {
