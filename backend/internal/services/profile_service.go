@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
+	"github.com/husni-robani/abstracted_self/backend/internal/models"
 	"github.com/husni-robani/abstracted_self/backend/internal/repositories"
 	"github.com/husni-robani/abstracted_self/backend/internal/utils"
 )
@@ -27,10 +28,10 @@ type ProfileData struct {
 	Bio string `json:"bio,omitempty"`
 	Taglines []string `json:"taglines,omitempty"`
 	ResumeFileName string `json:"resume_file_name,omitempty"`
-	Skills []string `json:"skills,omitempty"`
+	SkillSet []models.SkillType `json:"skill_set,omitempty"`
 }
 
-func (service ProfileService) GetProfileData(name bool, summary bool, bio bool, taglines bool, resume bool, skills bool) (ProfileData, error) {
+func (service ProfileService) GetProfileData(name bool, summary bool, bio bool, taglines bool, resume bool, skill_set bool) (ProfileData, error) {
 	var dataResult ProfileData
 	
 	profileData, err := service.Repository.ReadProfileData()
@@ -54,8 +55,8 @@ func (service ProfileService) GetProfileData(name bool, summary bool, bio bool, 
 	if resume {
 		dataResult.ResumeFileName = profileData.ResumeFileName
 	}
-	if skills {
-		dataResult.Skills = profileData.Skills
+	if skill_set {
+		dataResult.SkillSet = profileData.SkillSet
 	}
 
 
