@@ -44,3 +44,18 @@ func (ProfileRepository) WriteProfileData(newProfile models.Profile) (error) {
 	}
 	return nil
 }
+
+func (repo ProfileRepository) GetAllSkillTypeName() ([]string, error) {
+	profile, err := repo.ReadProfileData()
+	if err != nil {
+		return nil, err
+	}
+
+	var result []string
+
+	for _, skillType := range profile.SkillSet{
+		result = append(result, skillType.TypeName)
+	}
+
+	return result, nil
+}
