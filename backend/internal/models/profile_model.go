@@ -1,5 +1,12 @@
 package models
 
+import "errors"
+
+
+var ErrSkillTypeDuplicate = errors.New("skill type already exists")
+var ErrSkillDuplicate = errors.New("skill already exists")
+var ErrSkillTypeNotFound = errors.New("type not found")
+
 type Profile struct {
 	Name string `json:"name"`
 	Summary string `json:"summary"`
