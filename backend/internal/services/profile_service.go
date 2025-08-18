@@ -1,10 +1,8 @@
 package services
 
 import (
-	"errors"
 	"mime/multipart"
 	"path/filepath"
-	"slices"
 
 	"github.com/google/uuid"
 	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
@@ -14,7 +12,6 @@ import (
 	"github.com/husni-robani/abstracted_self/backend/internal/utils"
 )
 
-var ErrSkillTypeDuplicate = errors.New("skill type already exists")
 
 type ProfileService struct {
 	Repository repositories.ProfileRepository
@@ -128,26 +125,35 @@ func saveNewResume(resumeFile *multipart.FileHeader) (file_name string, err erro
 }
 
 func (service ProfileService) AddSkillSetType(dataRequest requests.AddProfileSkillSetType) (error) {
-	originalProfileData, err := service.Repository.ReadProfileData()
-	if err != nil {
+	if err := service.Repository.AddSkillSetType(dataRequest.TypeName); err != nil {
 		return err
 	}
+	return nil
+}
 
-	// Check is the type_name already exists
-	typeNames, err := service.Repository.GetAllSkillTypeName()
-	if err != nil {
+func (service ProfileService) AddSkill(dataRequest requests.AddProfileSkill) (error) {
+	// insert icon
+		// Generate file name
+	extension := filepath.Ext(dataRequest.IconFile.Filename)
+	newFileName := uuid.New().String() + extension
+		// set new file name
+	dataRequest.IconFile.Filename = newFileName
+
+	// store to storage
+	if err := utils.SaveFile(dataRequest.IconFile, "./storage/icons"); err != nil {
+		logger.Error.Printf("store resume file to storage failed: %v", err)
 		return err
 	}
-	if slices.Contains(typeNames, dataRequest.TypeName) {
-		return ErrSkillTypeDuplicate
+	
+	// add skill
+	newSkill := models.Skill{
+		Name: dataRequest.Name,
+		IconFilename: dataRequest.IconFile.Filename,
+		IsMostUsed: *dataRequest.IsMostUsed,
+		// IsMostUsed: false,
 	}
-
-	// append the new type name to SkillSet
-	originalProfileData.SkillSet = append(originalProfileData.SkillSet, models.SkillType{TypeName: dataRequest.TypeName, SkillItems: []models.Skill{}})
-
-	if err := service.Repository.WriteProfileData(originalProfileData); err != nil {
+	if err := service.Repository.AddSkill(newSkill, dataRequest.SkillType); err != nil {
 		return err
 	}
-
 	return nil
 }

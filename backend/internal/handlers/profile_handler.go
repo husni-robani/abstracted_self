@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
+	"github.com/husni-robani/abstracted_self/backend/internal/models"
 	"github.com/husni-robani/abstracted_self/backend/internal/response"
 	"github.com/husni-robani/abstracted_self/backend/internal/services"
 	"github.com/husni-robani/abstracted_self/backend/internal/utils"
@@ -121,7 +122,7 @@ func (handler ProfileHandler) AddSkillType(c *gin.Context) {
 
 	// add skill type
 	if err := handler.Service.AddSkillSetType(reqBody); err != nil {
-		if err == services.ErrSkillTypeDuplicate {
+		if err == models.ErrSkillTypeDuplicate {
 			logger.Info.Println(err)
 			response.Error(c, http.StatusConflict, err.Error(), nil)
 			return
@@ -132,4 +133,69 @@ func (handler ProfileHandler) AddSkillType(c *gin.Context) {
 	}
 
 	response.Success(c, http.StatusOK, "add profile kill type successful!", nil)
+}
+
+func (handler ProfileHandler) AddSkill(c *gin.Context){
+	var reqBody requests.AddProfileSkill
+	// get skill_name, is_most_used, file
+	if err := c.Bind(&reqBody); err != nil {
+		logger.Error.Printf("Bind request body failed: %#v", err)
+		response.Error(c, http.StatusBadRequest, "Bad Request", nil)
+		return
+	}
+
+	logger.Debug.Printf("Request Body Form: %#v", reqBody)
+
+	// validate data
+	invalidFieldErrors, err := utils.ValidateStruct(reqBody)
+	if err != nil {
+		logger.Error.Printf("Validate request body failed: %#v", err)
+		response.Error(c, http.StatusInternalServerError, "Internal Server Error", nil)
+		return
+	}
+
+	// get request multipart form file
+	reqBody.IconFile, err = c.FormFile("icon_file")
+	if err != nil {
+		if err == http.ErrMissingFile {
+			reqBody.IconFile = nil
+		}else {
+			logger.Error.Println("failed to get request form file: ", err)
+			response.Error(c, http.StatusInternalServerError, "internal server error", nil)
+			return
+		}
+	}
+	// validate file
+	if reqBody.IconFile != nil {
+		if err := utils.ValidateFile(reqBody.IconFile, []string{"image/svg+xml"}, 300 << 10); err != nil {
+			invalidFieldErrors["icon_file"] = err.Error()
+		}
+	}
+
+	// return all validation errors
+	if len(invalidFieldErrors) >= 1 {
+		logger.Info.Printf("Invalid body request: %#v", invalidFieldErrors)
+		response.Error(c, http.StatusBadRequest, "invalid body request", invalidFieldErrors)
+		return
+	}
+
+	// add skill
+	if err := handler.Service.AddSkill(reqBody); err != nil {
+		if err == models.ErrSkillDuplicate {
+			logger.Info.Println(err.Error())
+			response.Error(c, http.StatusConflict, err.Error(), nil)
+			return
+		}
+		if err == models.ErrSkillTypeNotFound{
+			logger.Info.Println(err.Error())
+			response.Error(c, http.StatusNotFound, err.Error(), nil)
+			return
+		}
+
+		logger.Error.Printf("Add skill failed: %#v", err)
+		response.Error(c, http.StatusInternalServerError, "Internal Server Error", nil)
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Add skill successful", nil)
 }
