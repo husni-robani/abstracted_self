@@ -157,3 +157,11 @@ func (service ProfileService) AddSkill(dataRequest requests.AddProfileSkill) (er
 	}
 	return nil
 }
+
+func (service ProfileService) RemoveSkillType(typeName string) (error) {
+	if err := service.Repository.RemoveSkillType(typeName); err != nil {
+		return err
+	}
+
+	return nil
+}
