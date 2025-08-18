@@ -132,7 +132,7 @@ func (handler ProfileHandler) AddSkillType(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, http.StatusOK, "add profile kill type successful!", nil)
+	response.Success(c, http.StatusOK, "add profile skill type successful!", nil)
 }
 
 func (handler ProfileHandler) AddSkill(c *gin.Context){
@@ -143,8 +143,6 @@ func (handler ProfileHandler) AddSkill(c *gin.Context){
 		response.Error(c, http.StatusBadRequest, "Bad Request", nil)
 		return
 	}
-
-	logger.Debug.Printf("Request Body Form: %#v", reqBody)
 
 	// validate data
 	invalidFieldErrors, err := utils.ValidateStruct(reqBody)
@@ -198,4 +196,39 @@ func (handler ProfileHandler) AddSkill(c *gin.Context){
 	}
 
 	response.Success(c, http.StatusOK, "Add skill successful", nil)
+}
+
+func (handler ProfileHandler) RemoveSkillType(c *gin.Context) {
+	var reqBody requests.RemoveProfileSkillSetType
+	if err := c.Bind(&reqBody); err != nil {
+		logger.Error.Printf("bind request body failed: %#v", err)
+		response.Error(c, http.StatusBadRequest, "bad request", nil)
+		return
+	}
+
+	invalidFieldErrors, err := utils.ValidateStruct(reqBody)
+	if err != nil {
+		logger.Error.Printf("body request validation failed: %#v", err)
+		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
+		return
+	}
+	if len(invalidFieldErrors) >= 1 {
+		logger.Info.Printf("Invalid data: %#v", invalidFieldErrors)
+		response.Error(c, http.StatusBadRequest, "invalid data", invalidFieldErrors)
+		return
+	}
+
+	if err := handler.Service.RemoveSkillType(reqBody.TypeName); err != nil {
+		if err == models.ErrSkillTypeNotFound {
+			logger.Info.Printf("%#v: %s", err, reqBody.TypeName)
+			response.Error(c, http.StatusNotFound, "type name not found", nil)
+			return
+		}
+
+		logger.Error.Printf("Remove skill type failed: %#v", err)
+		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
+		return
+	}
+
+	response.Success(c, http.StatusOK, "remove skill type successful", nil)
 }
