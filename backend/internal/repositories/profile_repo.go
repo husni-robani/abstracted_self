@@ -8,6 +8,7 @@ import (
 
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
 	"github.com/husni-robani/abstracted_self/backend/internal/models"
+	"github.com/husni-robani/abstracted_self/backend/internal/utils"
 )
 
 type ProfileRepository struct {}
@@ -137,6 +138,43 @@ func (repo ProfileRepository) AddSkill(newSkill models.Skill, typeName string) (
 	}
 
 	if err := repo.WriteProfileData(profile); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repo ProfileRepository) RemoveSkillType(typeName string) (error) {
+	allTypeNames, err := repo.GetAllSkillTypeName()
+	if err != nil {
+		return err
+	}
+	if !slices.Contains(allTypeNames, typeName) {
+		return models.ErrSkillTypeNotFound
+	}
+
+	// get profile data 
+	profileData, err := repo.ReadProfileData()
+	if err != nil {
+		return err
+	}
+
+	// remove skill type and related skill icons
+	for i, skillType := range profileData.SkillSet {
+		if skillType.TypeName == typeName {
+			// remove related skill icons
+			for _, skill := range skillType.SkillItems {
+				// skill.IconFilename
+				if err := utils.RemoveFile("./storage/icons/", skill.IconFilename); err != nil {
+					logger.Error.Printf("remove file (%s) failed: %v", skill.IconFilename, err)
+				}
+			}
+			// remove skill type
+			profileData.SkillSet = slices.Delete(profileData.SkillSet, i, i+1)
+		}
+	}
+
+	if err := repo.WriteProfileData(profileData); err != nil {
 		return err
 	}
 
