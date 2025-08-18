@@ -65,6 +65,7 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 
 		authorizedRouter.PUT("/profile", handler.ProfileHandler.UpdateProfile)
 		authorizedRouter.POST("/profile/skill_type", handler.ProfileHandler.AddSkillType)
+		authorizedRouter.POST("/profile/skills", handler.ProfileHandler.AddSkill)
 	}
 
 	return router
