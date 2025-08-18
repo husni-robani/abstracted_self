@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"slices"
 
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
 	"github.com/husni-robani/abstracted_self/backend/internal/models"
@@ -58,4 +59,86 @@ func (repo ProfileRepository) GetAllSkillTypeName() ([]string, error) {
 	}
 
 	return result, nil
+}
+
+func (repo ProfileRepository) GetAllSkillName() ([]string, error){
+	profile, err := repo.ReadProfileData()
+	if err != nil {
+		return nil, err
+	}
+
+	var skillNames []string
+
+	for _, skillType := range profile.SkillSet {
+		for _, skill := range skillType.SkillItems {
+			skillNames = append(skillNames, skill.Name)
+		}
+	}
+
+	return skillNames, nil
+}
+
+func (repo ProfileRepository) AddSkillSetType(typeName string) (error) {
+	// Check is the type_name already exists
+	typeNames, err := repo.GetAllSkillTypeName()
+	if err != nil {
+		return err
+	}
+	if slices.Contains(typeNames, typeName) {
+		return models.ErrSkillTypeDuplicate
+	}
+
+	// append the new type name to SkillSet
+	originalProfileData, err := repo.ReadProfileData()
+	if err != nil {
+		return err
+	}
+
+	originalProfileData.SkillSet = append(originalProfileData.SkillSet, models.SkillType{TypeName: typeName, SkillItems: []models.Skill{}})
+
+	if err := repo.WriteProfileData(originalProfileData); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repo ProfileRepository) AddSkill(newSkill models.Skill, typeName string) (error){
+	// check is type already exists
+	typeNames, err := repo.GetAllSkillTypeName()
+	if err != nil {
+		return err
+	}
+	if !slices.Contains(typeNames, typeName) {
+		logger.Info.Printf("skill type not found!")
+		return models.ErrSkillTypeNotFound
+	}
+
+	// check is skill already exists
+	skillNames, err := repo.GetAllSkillName()
+	if err != nil {
+		return err
+	}
+	if slices.Contains(skillNames, newSkill.Name){
+		logger.Info.Printf("skill already exists!")
+		return models.ErrSkillDuplicate
+	}
+
+	// Get profile data and append new skill
+	profile, err := repo.ReadProfileData()
+	if err != nil {
+		return err
+	}
+
+	for i, skillType := range profile.SkillSet {
+		if skillType.TypeName == typeName {
+			profile.SkillSet[i].SkillItems = append(skillType.SkillItems, newSkill)
+		}
+	}
+
+	if err := repo.WriteProfileData(profile); err != nil {
+		return err
+	}
+
+	return nil
 }
