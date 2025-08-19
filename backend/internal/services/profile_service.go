@@ -165,3 +165,11 @@ func (service ProfileService) RemoveSkillType(typeName string) (error) {
 
 	return nil
 }
+
+func (service ProfileService) RemoveSkill(skillName string) (error) {
+	if err := service.Repository.RemoveSkill(skillName); err != nil {
+		return err
+	}
+
+	return nil
+}

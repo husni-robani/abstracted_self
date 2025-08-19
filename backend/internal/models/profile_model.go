@@ -6,6 +6,7 @@ import "errors"
 var ErrSkillTypeDuplicate = errors.New("skill type already exists")
 var ErrSkillDuplicate = errors.New("skill already exists")
 var ErrSkillTypeNotFound = errors.New("type not found")
+var ErrSkillNotFound = errors.New("skill not found")
 
 type Profile struct {
 	Name string `json:"name"`
