@@ -68,6 +68,7 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 		authorizedRouter.POST("/profile/skills", handler.ProfileHandler.AddSkill)
 		authorizedRouter.DELETE("/profile/skill_types", handler.ProfileHandler.RemoveSkillType)
 		authorizedRouter.DELETE("/profile/skills", handler.ProfileHandler.RemoveSkill)
+		authorizedRouter.POST("/profile/most_used", handler.ProfileHandler.ToggleIsMostUsed)
 	}
 
 	return router
