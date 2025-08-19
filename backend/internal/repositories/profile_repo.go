@@ -211,3 +211,33 @@ func (repo ProfileRepository) RemoveSkill(skillName string) error {
 
 	return nil
 }
+
+func (repo ProfileRepository) ToggleIsMostUsed(skillName string, typeName string) error {
+	profileData, err := repo.ReadProfileData()
+	if err != nil {
+		return err
+	}
+
+	isExists := false
+	for i, skillType := range profileData.SkillSet{
+		if skillType.TypeName == typeName {
+			for k, skillItem := range profileData.SkillSet[i].SkillItems {
+				if skillItem.Name == skillName{
+					profileData.SkillSet[i].SkillItems[k].IsMostUsed = !profileData.SkillSet[i].SkillItems[k].IsMostUsed
+					isExists = true
+				}
+			}
+		}
+	}
+
+	if !isExists {
+		return models.ErrSkillNotFound
+	}
+
+	// update the profile data
+	if err := repo.WriteProfileData(profileData); err != nil {
+		return err
+	}
+
+	return nil
+}

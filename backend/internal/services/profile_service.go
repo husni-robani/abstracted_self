@@ -173,3 +173,11 @@ func (service ProfileService) RemoveSkill(skillName string) (error) {
 
 	return nil
 }
+
+func (service ProfileService) ToggleIsMostUsed(skillName string, typeName string) error {
+	if err := service.Repository.ToggleIsMostUsed(skillName, typeName); err != nil {
+		return err
+	}
+
+	return nil
+}
