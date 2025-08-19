@@ -162,9 +162,8 @@ func (repo ProfileRepository) RemoveSkillType(typeName string) (error) {
 	// remove skill type and related skill icons
 	for i, skillType := range profileData.SkillSet {
 		if skillType.TypeName == typeName {
-			// remove related skill icons
+			// remove all related skill icons
 			for _, skill := range skillType.SkillItems {
-				// skill.IconFilename
 				if err := utils.RemoveFile("./storage/icons/", skill.IconFilename); err != nil {
 					logger.Error.Printf("remove file (%s) failed: %v", skill.IconFilename, err)
 				}
@@ -172,6 +171,38 @@ func (repo ProfileRepository) RemoveSkillType(typeName string) (error) {
 			// remove skill type
 			profileData.SkillSet = slices.Delete(profileData.SkillSet, i, i+1)
 		}
+	}
+
+	if err := repo.WriteProfileData(profileData); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repo ProfileRepository) RemoveSkill(skillName string) error {
+	profileData, err := repo.ReadProfileData()
+	if err != nil {
+		return err
+	}
+
+	isExists := false
+	for i, skillType := range profileData.SkillSet{
+		for k, skill := range skillType.SkillItems{
+			if skill.Name == skillName {
+				// remove the skill icon
+				if err := utils.RemoveFile("./storage/icons/", skill.IconFilename); err != nil {
+					logger.Error.Printf("remove file (%s) failed: %v", skill.IconFilename, err)
+				}
+				// remove the skill
+				profileData.SkillSet[i].SkillItems = slices.Delete(profileData.SkillSet[i].SkillItems, k, k+1)
+				isExists = true
+			}
+		}
+	}
+
+	if !isExists {
+		return models.ErrSkillNotFound
 	}
 
 	if err := repo.WriteProfileData(profileData); err != nil {
