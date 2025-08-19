@@ -64,8 +64,10 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 		authorizedRouter.PUT("projects/:id", handler.ProjectHandler.UpdateProject)
 
 		authorizedRouter.PUT("/profile", handler.ProfileHandler.UpdateProfile)
-		authorizedRouter.POST("/profile/skill_type", handler.ProfileHandler.AddSkillType)
+		authorizedRouter.POST("/profile/skill_types", handler.ProfileHandler.AddSkillType)
 		authorizedRouter.POST("/profile/skills", handler.ProfileHandler.AddSkill)
+		authorizedRouter.DELETE("/profile/skill_types", handler.ProfileHandler.RemoveSkillType)
+		authorizedRouter.DELETE("/profile/skills", handler.ProfileHandler.RemoveSkill)
 	}
 
 	return router
