@@ -150,7 +150,7 @@ func (service ProfileService) AddSkill(dataRequest requests.AddProfileSkill) (er
 		Name: dataRequest.Name,
 		IconFilename: dataRequest.IconFile.Filename,
 		IsMostUsed: *dataRequest.IsMostUsed,
-		// IsMostUsed: false,
+		URL: dataRequest.URL,
 	}
 	if err := service.Repository.AddSkill(newSkill, dataRequest.SkillType); err != nil {
 		return err
