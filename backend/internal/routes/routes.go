@@ -34,6 +34,7 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 
 	router.GET("/assets/images/:file_name", handler.StorageHandler.GetImages)
 	router.GET("/assets/documents/:file_name", handler.StorageHandler.GetDocuments)
+	router.GET("/assets/icons/:file_name", handler.StorageHandler.GetIcons)
 
 	router.GET("/profile", handler.ProfileHandler.GetProfileData)
 
