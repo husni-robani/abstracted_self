@@ -67,6 +67,6 @@ func (StorageHandler) GetIcons(c *gin.Context) {
 	}
 
 	c.Header("Content-Type", "image/svg+xml")
-	// c.Header("Cache-Control", "public, max-age=86400")
+	c.Header("Cache-Control", "public, max-age=86400")
 	c.File(full_path)
 }
