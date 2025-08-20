@@ -26,5 +26,6 @@ type Skill struct {
 	Name string `json:"name"`
 	IconFilename string `json:"icon_filename"`
 	IsMostUsed bool `json:"is_most_used"`
+	URL string `json:"url"`
 }
 
