@@ -25,34 +25,14 @@
         </div>
       </div>
     </div>
-    <!-- programming langauage -->
-    <div class="flex flex-col my-10 mx-4 md:m-14 items-center">
-      <!-- title -->
-      <div class="text-xl text-center font-semibold">
-        <h1>Technologies I've Used and Still Catch Up</h1>
-        <hr class="w-1/2 mt-2 mx-auto h-2 border-t border-gray-400" />
-      </div>
-      <!-- programming langauage list -->
-      <div class="mt-4">
-        <div class="flex flex-wrap items-center justify-center">
-          <div class="bg-gray-200 shadow-md p-1 m-1 rounded-md">Javascript</div>
-          <div class="bg-gray-200 shadow-md p-1 m-1 rounded-md">Python</div>
-          <div class="bg-gray-200 shadow-md p-1 m-1 rounded-md">PHP</div>
-          <div class="bg-gray-200 shadow-md p-1 m-1 rounded-md">Laravel</div>
-          <div class="bg-gray-200 shadow-md p-1 m-1 rounded-md">Nest js</div>
-          <div class="bg-gray-200 shadow-md p-1 m-1 rounded-md">Flask</div>
-          <div class="bg-gray-200 shadow-md p-1 m-1 rounded-md">Tailwind</div>
-          <div class="bg-gray-200 shadow-md p-1 m-1 rounded-md">React js</div>
-          <div class="bg-gray-200 shadow-md p-1 m-1 rounded-md">Vue js</div>
-        </div>
-        <div></div>
-      </div>
-    </div>
+    <!-- skill set -->
+    <TechStack />
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref } from "vue";
+import TechStack from "./TechStack.vue";
 
 const bio = ref("");
 
