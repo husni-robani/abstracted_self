@@ -47,7 +47,7 @@ func (service BlogService) CreateBlog(blog requests.CreateBlogRequest) error {
 	blog.Image = newFilename
 
 	// save image
-	err := utils.SaveFile(blog.ImageFile, "./storage/blog_images")
+	err := utils.SaveFile(blog.ImageFile, "./storage/images")
 	if err != nil {
 		return err
 	}

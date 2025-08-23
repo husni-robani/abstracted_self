@@ -58,7 +58,7 @@ func (repo BlogRepository) GetBlogByID(id int) (models.Blog, error) {
 }
 
 func (repo BlogRepository) CreateBlog(blog requests.CreateBlogRequest) error {
-	result, err := repo.db.Exec("INSERT INTO blogs (title, url, image) VALUES ($1, $2, $3)", blog.Title, blog.URL, blog.Image)
+	result, err := repo.db.Exec("INSERT INTO blogs (title, url, image, blog_snippet) VALUES ($1, $2, $3, $4)", blog.Title, blog.URL, blog.Image, blog.BlogSnippet)
 	if err != nil {
 		logger.Error.Printf("error insert blog: %#v", err.Error())
 		return err
