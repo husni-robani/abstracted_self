@@ -71,7 +71,7 @@ func (service BlogService) DeleteBlog(id int) error {
 		return err
 	}
 
-	if err := os.Remove("./storage/blog_images/" + blog.Image); err != nil {
+	if err := utils.RemoveFile("./storage/images/", blog.Image); err != nil {
 		logger.Error.Printf("error delete image: %v", err.Error())
 		return err
 	}
