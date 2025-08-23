@@ -6,4 +6,5 @@ type UpdateBlogRequest struct {
 	Title *string `form:"title,omitempty"`
 	URL *string `form:"url,omitempty"`
 	ImageFile *multipart.FileHeader `form:"file,omitempty"`
+	BlogSnippet *string `form:"blog_snippet,omitempty"`
 }
