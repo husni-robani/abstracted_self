@@ -22,7 +22,7 @@ func NewBlogRepository(DB *sql.DB) BlogRepository{
 
 func (repo BlogRepository) GetAllBlogs() ([]models.Blog, error){
 	var blogs []models.Blog
-	rows, err := repo.db.Query("Select * from blogs")
+	rows, err := repo.db.Query("Select id, title, url, image, blog_snippet from blogs")
 	if err != nil {
 		logger.Error.Printf("get blog data error: %#v", err.Error())
 		return nil, err
@@ -31,7 +31,7 @@ func (repo BlogRepository) GetAllBlogs() ([]models.Blog, error){
 	for rows.Next(){
 		blog := models.Blog{}
 
-		err := rows.Scan(&blog.Id, &blog.Title, &blog.URL, &blog.Image)
+		err := rows.Scan(&blog.Id, &blog.Title, &blog.URL, &blog.Image, &blog.BlogSnippet)
 		if err != nil {
 			logger.Error.Printf("scan rows error: %#v", err.Error())
 			return nil, err
