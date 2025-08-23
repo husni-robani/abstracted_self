@@ -46,9 +46,9 @@ func (repo BlogRepository) GetAllBlogs() ([]models.Blog, error){
 func (repo BlogRepository) GetBlogByID(id int) (models.Blog, error) {
 	blog := models.Blog{}
 
-	row := repo.db.QueryRow("select * from blogs where id = $1", id)
+	row := repo.db.QueryRow("select id, title, url, image, blog_snippet from blogs where id = $1", id)
 
-	err := row.Scan(&blog.Id, &blog.Title, &blog.URL, &blog.Image)
+	err := row.Scan(&blog.Id, &blog.Title, &blog.URL, &blog.Image, &blog.BlogSnippet)
 	if err != nil {
 		logger.Error.Printf("error select blog: %#v", err.Error())
 		return blog, err
