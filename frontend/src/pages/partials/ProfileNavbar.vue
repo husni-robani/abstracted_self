@@ -2,15 +2,15 @@
   <nav
     ref="navbar"
     :class="[
-      'h-20 top-0 left-0 right-0 fixed flex items-center justify-between md:flex-row-reverse px-20 py-5 z-20 bg-white transition-all duration-300',
+      'h-20 top-0 left-0 right-0 fixed flex items-center justify-between md:flex-row-reverse px-6 md:px-20 py-5 z-30 bg-white transition-all duration-300',
       isHidden ? '-translate-y-full' : 'translate-y-0',
       hasScrolled
         ? 'shadow-md border-b border-gray-200'
         : 'shadow-none border-b-white',
     ]"
   >
-    <!-- Right: Resume -->
-    <div class="flex flex-row items-center gap-8 mx-auto md:m-0">
+    <!-- Right: Resume (desktop only) -->
+    <div class="hidden md:flex flex-row items-center gap-8 mx-auto md:m-0">
       <div class="flex flex-col items-center">
         <div class="peer text-gray-500 font-medium hover:text-gray-800">
           <a
@@ -26,8 +26,8 @@
       </div>
     </div>
 
-    <!-- Left: Menu Links -->
-    <div class="flex gap-8">
+    <!-- Left: Menu Links (desktop only) -->
+    <div class="hidden md:flex gap-8">
       <a
         href="#about"
         :class="[
@@ -62,6 +62,17 @@
         Projects
       </a>
       <a
+        href="#bytenotes"
+        :class="[
+          'font-medium transition-colors duration-200',
+          activeSection === 'bytenotes'
+            ? 'text-gray-500'
+            : 'text-gray-300 hover:text-gray-900',
+        ]"
+      >
+        ByteNotes
+      </a>
+      <a
         href="#contact"
         :class="[
           'font-medium transition-colors duration-200',
@@ -73,7 +84,80 @@
         Contact
       </a>
     </div>
+
+    <!-- Mobile: Hamburger Button -->
+    <button
+      @click="openSidebar"
+      class="md:hidden text-gray-700 focus:outline-none"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M4 6h16M4 12h16M4 18h16"
+        />
+      </svg>
+    </button>
   </nav>
+
+  <!-- Sidebar (Mobile Drawer) -->
+  <div
+    class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform transition-transform duration-300 z-40 md:hidden flex flex-col"
+    :class="isSidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+  >
+    <!-- Close Button -->
+    <div class="flex justify-end p-4">
+      <button @click="closeSidebar" class="text-gray-700">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Sidebar Links -->
+    <div class="flex flex-col gap-6 p-6">
+      <a href="#about" @click="closeSidebar">About</a>
+      <a href="#experiences" @click="closeSidebar">Experiences</a>
+      <a href="#projects" @click="closeSidebar">Projects</a>
+      <a href="#bytenotes" @click="closeSidebar">ByteNotes</a>
+      <a href="#contact" @click="closeSidebar">Contact</a>
+
+      <!-- Resume (mobile sidebar) -->
+      <a
+        :href="asset_document_endpoint + '/' + resume_file_name"
+        target="_blank"
+        class="text-gray-700 font-medium border-t pt-4 mt-4"
+        @click="closeSidebar"
+      >
+        Resume
+      </a>
+    </div>
+  </div>
+
+  <!-- Overlay -->
+  <div
+    v-if="isSidebarOpen"
+    @click="closeSidebar"
+    class="fixed inset-0 bg-black/60 md:hidden z-30"
+  ></div>
 </template>
 
 <script setup>
@@ -89,10 +173,21 @@ const activeSection = ref("");
 const resume_file_name = ref("");
 const isHidden = ref(false);
 const hasScrolled = ref(false);
+const isSidebarOpen = ref(false);
 let lastScrollTop = 0;
 
+function openSidebar() {
+  isSidebarOpen.value = true;
+  document.body.classList.add("overflow-hidden"); // disable scroll
+}
+
+function closeSidebar() {
+  isSidebarOpen.value = false;
+  document.body.classList.remove("overflow-hidden"); // re-enable scroll
+}
+
 function updateActiveSection() {
-  const scrollPosition = window.scrollY + 100; // offset for navbar
+  const scrollPosition = window.scrollY + 100;
   for (let id of sectionIds) {
     const el = document.getElementById(id);
     if (el) {
@@ -116,7 +211,6 @@ onBeforeUnmount(() => {
 });
 
 onMounted(async () => {
-  // Fetch resume
   try {
     const response = await fetch(api_endpoint + "?resume=true");
     if (!response.ok) throw new Error(`Failed: ${response.status}`);
@@ -126,7 +220,6 @@ onMounted(async () => {
     console.log(e);
   }
 
-  // Scroll listener
   window.addEventListener("scroll", handleScroll);
 });
 
