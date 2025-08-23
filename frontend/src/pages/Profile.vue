@@ -8,6 +8,8 @@
     <Experiences id="experiences" />
     <!-- Project Section -->
     <Project id="projects"></Project>
+    <!-- ByteNotes section -->
+    <ByteNotes id="bytenotes" />
     <!-- Contact Section -->
     <Contact id="contact"></Contact>
   </ProfileLayout>
@@ -20,4 +22,5 @@ import Bio from "./partials/Bio.vue";
 import Contact from "./partials/Contact.vue";
 import Project from "./partials/Project.vue";
 import Experiences from "./partials/Experiences.vue";
+import ByteNotes from "./partials/ByteNotes.vue";
 </script>
