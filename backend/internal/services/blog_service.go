@@ -1,7 +1,6 @@
 package services
 
 import (
-	"os"
 	"path/filepath"
 
 	"github.com/google/uuid"
@@ -93,14 +92,14 @@ func (service BlogService) UpdateBlog(id int, newBlogData requests.UpdateBlogReq
 		newFilename := uuid.New().String() + extension
 		
 		newBlogData.ImageFile.Filename = newFilename
-		if err := utils.SaveFile(newBlogData.ImageFile, "./storage/blog_images"); err != nil {
+		if err := utils.SaveFile(newBlogData.ImageFile, "./storage/images"); err != nil {
 			logger.Error.Printf("error save image to storage: %v", err.Error())
 			return nil, err
 		}
 		logger.Info.Printf("file saved: %v", newBlogData.ImageFile.Filename)
 		
 		// remove older image
-		err := os.Remove("./storage/blog_images/" + blog.Image)
+		err := utils.RemoveFile("./storage/images/", blog.Image)
 		if err != nil {
 			logger.Error.Printf("error remove image from storage: %v", err.Error())
 			return nil, err
@@ -114,7 +113,10 @@ func (service BlogService) UpdateBlog(id int, newBlogData requests.UpdateBlogReq
 	} 
 	if newBlogData.URL != nil {
 		values["url"] = *newBlogData.URL
-	} 
+	}
+	if newBlogData.BlogSnippet != nil {
+		values["blog_snippet"] = *newBlogData.BlogSnippet
+	}
 
 	if err := service.Repository.UpdateBlog(id, values); err != nil {
 		return nil, err
