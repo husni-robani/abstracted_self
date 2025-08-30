@@ -16,6 +16,7 @@ type Handlers struct {
 	ProjectHandler *ProjectHandler
 	StorageHandler *StorageHandler
 	ProfileHandler *ProfileHandler
+	DailyVisitHandler *DailyVisitHandler
 }
 
 func SetupHandler(db *sql.DB) Handlers {
@@ -49,6 +50,10 @@ func SetupHandler(db *sql.DB) Handlers {
 	profileService := services.NewProfileService(profileRepo)
 	ProfileHandler := NewProfileHandler(profileService)
 
+	dailyVisitRepo := repositories.NewDailyVisitRepository(db)
+	dailyVisitService := services.NewDailyVisitService(dailyVisitRepo)
+	dailyVisitHandler := NewDailyVisitHandler(dailyVisitService)
+
 	return Handlers{
 		BlogHandler: &blogHandler,
 		AuthHandler: &authHandler,
@@ -58,5 +63,6 @@ func SetupHandler(db *sql.DB) Handlers {
 		ProjectHandler: &projectHandler,
 		StorageHandler: &storageHandler,
 		ProfileHandler: &ProfileHandler,
+		DailyVisitHandler: &dailyVisitHandler,
 	}
 }
