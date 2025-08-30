@@ -38,6 +38,8 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 
 	router.GET("/profile", handler.ProfileHandler.GetProfileData)
 
+	router.POST("/profile_visit", handler.DailyVisitHandler.ProfileVisitor)
+
 
 	// authorized router
 	authorizedRouter := router.Group("", auth.AuthMiddleware())
