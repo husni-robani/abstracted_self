@@ -3,8 +3,8 @@ package services
 import (
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
-	"github.com/husni-robani/abstracted_self/backend/internal/logger"
 	"github.com/husni-robani/abstracted_self/backend/internal/models"
 	"github.com/husni-robani/abstracted_self/backend/internal/repositories"
 )
@@ -19,18 +19,12 @@ func NewDailyVisitService(repo repositories.DailyVisitRepository) DailyVisitServ
 	}
 }
 
-func (service DailyVisitService) ProfileVisitor(visitReq requests.VisitRequest) error {
-	dateFormatted, err := time.Parse("2006-01-02", visitReq.VisitDate)
-	if err != nil {
-		logger.Error.Printf("Failed to parse VisitDate: %v", err)
-		return err
-	}
-
+func (service DailyVisitService) ProfileVisitor(visitReq requests.VisitRequest, c *gin.Context) error {
 	visit_data := models.DailyVisit{
 		UUID: visitReq.UUID,
-		VisitDate: dateFormatted,
-		Ip: visitReq.Ip,
-		Device: visitReq.Device,
+		VisitDate: time.Now(),
+		Ip: c.ClientIP(),
+		Device: c.GetHeader("User-Agent"),
 	}
 
 	if err := service.repo.StoreDailyVisit(visit_data); err != nil {

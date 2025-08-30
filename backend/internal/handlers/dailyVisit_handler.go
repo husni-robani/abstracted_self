@@ -44,7 +44,7 @@ func (handler DailyVisitHandler) ProfileVisitor(c *gin.Context) {
 	}
 
 
-	if err = handler.service.ProfileVisitor(visitRequest); err != nil {
+	if err = handler.service.ProfileVisitor(visitRequest, c); err != nil {
 		response.Error(c, http.StatusInternalServerError, "Internal Server Error", nil)
 		return
 	}
