@@ -1,13 +1,37 @@
-version: "3"
-
 services:
-  backend-service:
+  frontend:
     build:
-      context: ./backend
-      dockerfile: backend.dockerfile
-    restart: always
+      context: ./frontend
+      args:
+        VITE_ENV: docker
     ports:
-      - "8080:80"
-    deploy:
-      mode: replicated
-      replicas: 1
+      - "3000:80"
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      - RUNNING_IN_DOCKER=true
+    env_file:
+      - ./backend/.env.docker
+      - ./backend/.env.access_credentials
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=abstracted_self
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d
+
+volumes:
+  pgdata:
