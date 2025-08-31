@@ -20,6 +20,8 @@ services:
       - ./backend/.env.access_credentials
     depends_on:
       - postgres
+    volumes:
+      - backend_storage:/app/storage
 
   postgres:
     image: postgres:15
@@ -34,4 +36,5 @@ services:
       - ./postgres-init:/docker-entrypoint-initdb.d
 
 volumes:
+  backend_storage:
   pgdata:
