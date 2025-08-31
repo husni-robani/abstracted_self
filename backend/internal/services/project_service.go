@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"sync"
 
@@ -42,7 +43,7 @@ func (service ProjectService) CreateNewProject(project_data requests.CreateProje
 		project_data.Images[i].Filename = newFileName
 
 		// store to storage
-		err := utils.SaveFile(&project_data.Images[i], "./storage/images")
+		err := utils.SaveFile(&project_data.Images[i], "." + os.Getenv("IMAGES_STORAGE_PATH"))
 		if err != nil {
 			return err
 		}
@@ -149,7 +150,7 @@ func (service ProjectService) UpdateProject(id int, project requests.UpdateProje
 			project.NewImages[i].Filename = newFileName
 
 			// store to storage
-			err := utils.SaveFile(&project.NewImages[i], "./storage/images")
+			err := utils.SaveFile(&project.NewImages[i], "." + os.Getenv("IMAGES_STORAGE_PATH"))
 			if err != nil {
 				return err
 			}
@@ -175,7 +176,7 @@ func (service ProjectService) UpdateProject(id int, project requests.UpdateProje
 					return
 				}
 
-				if err := utils.RemoveFile("./storage/images/", projectImage.FileName); err != nil {
+				if err := utils.RemoveFile("." + os.Getenv("IMAGES_STORAGE_PATH") + "/", projectImage.FileName); err != nil {
 					logger.Error.Printf("delete image file from storage failed: %v", err)
 					return
 				}

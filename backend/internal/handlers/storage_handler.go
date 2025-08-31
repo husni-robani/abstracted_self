@@ -22,7 +22,7 @@ func NewStorageHandler() (StorageHandler) {
 func (StorageHandler) GetImages(c *gin.Context) {
 	cwd, _ := os.Getwd()
 	file_name := c.Param("file_name")
-	full_path := filepath.Join(cwd, "storage/images", file_name)
+	full_path := filepath.Join(cwd, os.Getenv("IMAGES_STORAGE_PATH"), file_name)
 
 	// Get file info
 	_, err := os.Stat(full_path)
@@ -40,7 +40,7 @@ func (StorageHandler) GetImages(c *gin.Context) {
 func (StorageHandler) GetDocuments(c *gin.Context) {
 	cwd, _ := os.Getwd()
 	file_name := c.Param("file_name")
-	full_path := filepath.Join(cwd, "storage/documents", file_name)	
+	full_path := filepath.Join(cwd, os.Getenv("DOCUMENTS_STORAGE_PATH"), file_name)	
 
 	// Get file info
 	_, err := os.Stat(full_path)
@@ -56,7 +56,7 @@ func (StorageHandler) GetDocuments(c *gin.Context) {
 func (StorageHandler) GetIcons(c *gin.Context) {
 	cwd, _ := os.Getwd()
 	file_name := c.Param("file_name")
-	full_path := filepath.Join(cwd, "storage/icons", file_name)
+	full_path := filepath.Join(cwd, os.Getenv("ICONS_STORAGE_PATH"), file_name)
 
 	// Get file info
 	_, err := os.Stat(full_path)

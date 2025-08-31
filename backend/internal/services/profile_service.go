@@ -2,6 +2,7 @@ package services
 
 import (
 	"mime/multipart"
+	"os"
 	"path/filepath"
 
 	"github.com/google/uuid"
@@ -78,7 +79,7 @@ func (service ProfileService) UpdateProfileData(dataRequest requests.UpdateProfi
 			return err
 		}
 		// delete old resume file
-		utils.RemoveFile("./storage/documents/", originalProfile.ResumeFileName)
+		utils.RemoveFile("." + os.Getenv("DOCUMENTS_STORAGE_PATH") + "/", originalProfile.ResumeFileName)
 		// set the new resume_file_name
 		originalProfile.ResumeFileName = newFileName
 	}
@@ -116,7 +117,7 @@ func saveNewResume(resumeFile *multipart.FileHeader) (file_name string, err erro
 	resumeFile.Filename = newFileName
 
 	// store to storage
-	if err := utils.SaveFile(resumeFile, "./storage/documents"); err != nil {
+	if err := utils.SaveFile(resumeFile, "." + os.Getenv("DOCUMENTS_STORAGE_PATH")); err != nil {
 		logger.Error.Printf("store resume file to storage failed: %v", err)
 		return "", err
 	}
@@ -140,7 +141,7 @@ func (service ProfileService) AddSkill(dataRequest requests.AddProfileSkill) (er
 	dataRequest.IconFile.Filename = newFileName
 
 	// store to storage
-	if err := utils.SaveFile(dataRequest.IconFile, "./storage/icons"); err != nil {
+	if err := utils.SaveFile(dataRequest.IconFile, "." + os.Getenv("ICONS_STORAGE_PATH")); err != nil {
 		logger.Error.Printf("store resume file to storage failed: %v", err)
 		return err
 	}
