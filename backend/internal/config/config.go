@@ -17,18 +17,20 @@ type Config struct {
 }
 
 func LoadConfig() (*Config, error) {
-	err := godotenv.Load()
-	if err != nil {
-		logger.Error.Printf("failed to load ENV: %v", err)
-		os.Exit(0)
-		return nil, err
-	}
+	if os.Getenv("RUNNING_IN_DOCKER") != "true"{
+		err := godotenv.Load()
+		if err != nil {
+			logger.Error.Printf("failed to load ENV: %v", err)
+			os.Exit(0)
+			return nil, err
+		}
 
-	err = godotenv.Load(".env.access_credentials")
-	if err != nil {
-		logger.Error.Printf("failed load USER ENV: %v", err)
-		os.Exit(0)
-		return nil, err
+		err = godotenv.Load(".env.access_credentials")
+		if err != nil {
+			logger.Error.Printf("failed load USER ENV: %v", err)
+			os.Exit(0)
+			return nil, err
+		}
 	}
 
 	return &Config{
