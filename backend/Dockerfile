@@ -20,7 +20,13 @@ COPY --from=build /app/main .
 
 # Copy profile_data.json
 RUN mkdir data
-COPY internal/db/profile_data.json data/.
+COPY internal/db/profile_data.docker.json data/profile_data.json
+
+# make storage directories
+RUN mkdir storage
+RUN mkdir storage/documents
+RUN mkdir storage/images
+RUN mkdir storage/icons
 
 EXPOSE 8080
 CMD ["./main"]
