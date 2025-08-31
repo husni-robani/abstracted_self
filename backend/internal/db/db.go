@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/husni-robani/abstracted_self/backend/internal/config"
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
@@ -17,8 +18,19 @@ func Connect(cfg *config.Config) (*sql.DB, error) {
 		return nil, err
 	}
 
-	if err := db.Ping(); err != nil {
-		return nil, err
+	for {
+		retry := 0
+		if err := db.Ping(); err != nil {
+			if retry < 5 {
+				logger.Info.Println("Database not connected yet, wait for 3 seconds...")
+				time.Sleep(time.Second  * 3)
+				retry ++
+				continue
+			}
+
+			return nil, err
+		}
+		break
 	}
 
 	logger.Info.Println("Database Connected!")
