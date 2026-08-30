@@ -27,9 +27,13 @@ SET default_table_access_method = heap;
 CREATE TABLE public.blogs (
     id integer NOT NULL,
     title character varying(100) NOT NULL,
-    url text NOT NULL,
-    image character varying(100) NOT NULL,
-    blog_snippet text
+    slug character varying(200) NOT NULL,
+    image character varying(100),
+    content text NOT NULL,
+    blog_snippet text,
+    published boolean DEFAULT false NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    updated_at timestamp without time zone
 );
 
 
@@ -309,6 +313,14 @@ ALTER TABLE ONLY public.technology_types ALTER COLUMN id SET DEFAULT nextval('pu
 
 ALTER TABLE ONLY public.blogs
     ADD CONSTRAINT blogs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: blogs blogs_slug_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.blogs
+    ADD CONSTRAINT blogs_slug_key UNIQUE (slug);
 
 
 --
