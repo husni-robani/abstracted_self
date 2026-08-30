@@ -3,6 +3,8 @@ package services
 import (
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
@@ -39,22 +41,26 @@ func (service BlogService) GetBlogByID(id int) (models.Blog, error) {
 }
 
 func (service BlogService) CreateBlog(blog requests.CreateBlogRequest) error {
-	// change filename
-	extension := filepath.Ext(blog.ImageFile.Filename)
-	newFilename := uuid.New().String() + extension
+	// save cover image
+	if blog.ImageFile != nil {
+		extension := filepath.Ext(blog.ImageFile.Filename)
+		newFilename := uuid.New().String() + extension
 
-	blog.ImageFile.Filename = newFilename
-	blog.Image = newFilename
+		blog.ImageFile.Filename = newFilename
+		blog.Image = newFilename
 
-	// save image
-	err := utils.SaveFile(blog.ImageFile, "." + os.Getenv("IMAGES_STORAGE_PATH"))
-	if err != nil {
-		return err
+		if err := utils.SaveFile(blog.ImageFile, "."+os.Getenv("IMAGES_STORAGE_PATH")); err != nil {
+			return err
+		}
+	}
+
+	// generate slug from title if not provided
+	if blog.Slug == "" {
+		blog.Slug = generateSlug(blog.Title)
 	}
 
 	// save to database
-	err = service.Repository.CreateBlog(blog)
-	if err != nil {
+	if err := service.Repository.CreateBlog(blog); err != nil {
 		return err
 	}
 
@@ -71,9 +77,11 @@ func (service BlogService) DeleteBlog(id int) error {
 		return err
 	}
 
-	if err := utils.RemoveFile("." + os.Getenv("IMAGES_STORAGE_PATH") + "/", blog.Image); err != nil {
-		logger.Error.Printf("error delete image: %v", err.Error())
-		return err
+	if blog.Image != "" {
+		if err := utils.RemoveFile("."+os.Getenv("IMAGES_STORAGE_PATH")+"/", blog.Image); err != nil {
+			logger.Error.Printf("error delete image: %v", err.Error())
+			return err
+		}
 	}
 
 	return nil
@@ -85,48 +93,60 @@ func (service BlogService) UpdateBlog(id int, newBlogData requests.UpdateBlogReq
 		return nil, err
 	}
 
-	var values = make(map[string]any)
-
+	// save new cover image and remove the old one
 	if newBlogData.ImageFile != nil {
-		// save image
 		extension := filepath.Ext(newBlogData.ImageFile.Filename)
 		newFilename := uuid.New().String() + extension
-		
+
 		newBlogData.ImageFile.Filename = newFilename
-		if err := utils.SaveFile(newBlogData.ImageFile, "." + os.Getenv("IMAGES_STORAGE_PATH")); err != nil {
+		if err := utils.SaveFile(newBlogData.ImageFile, "."+os.Getenv("IMAGES_STORAGE_PATH")); err != nil {
 			logger.Error.Printf("error save image to storage: %v", err.Error())
 			return nil, err
 		}
 		logger.Info.Printf("file saved: %v", newBlogData.ImageFile.Filename)
-		
-		// remove older image
-		err := utils.RemoveFile("." + os.Getenv("IMAGES_STORAGE_PATH") + "/", blog.Image)
-		if err != nil {
-			logger.Error.Printf("error remove image from storage: %v", err.Error())
-			return nil, err
+
+		if blog.Image != "" {
+			if err := utils.RemoveFile("."+os.Getenv("IMAGES_STORAGE_PATH")+"/", blog.Image); err != nil {
+				logger.Error.Printf("error remove image from storage: %v", err.Error())
+			}
 		}
-		values["image"] = newFilename
+		blog.Image = newFilename
 	}
 
-	// save data to database
-	if newBlogData.Title != nil {
-		values["title"] = *newBlogData.Title
-	} 
-	if newBlogData.URL != nil {
-		values["url"] = *newBlogData.URL
-	}
-	if newBlogData.BlogSnippet != nil {
-		values["blog_snippet"] = *newBlogData.BlogSnippet
+	blog.Title = newBlogData.Title
+	blog.Content = newBlogData.Content
+	blog.BlogSnippet = newBlogData.BlogSnippet
+	blog.Published = newBlogData.Published
+
+	if newBlogData.Slug != "" {
+		blog.Slug = newBlogData.Slug
+	} else {
+		blog.Slug = generateSlug(newBlogData.Title)
 	}
 
-	if err := service.Repository.UpdateBlog(id, values); err != nil {
+	now := time.Now()
+	blog.UpdatedAt = &now
+
+	if err := service.Repository.UpdateBlog(id, blog); err != nil {
 		return nil, err
 	}
 
-	updatedBlog, err := service.Repository.GetBlogByID(id)
-	if err != nil {
-		return nil, err
+	return &blog, nil
+}
+
+func generateSlug(title string) string {
+	var b strings.Builder
+	lastHyphen := false
+
+	for _, r := range strings.ToLower(title) {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
+			b.WriteRune(r)
+			lastHyphen = false
+		} else if !lastHyphen && b.Len() > 0 {
+			b.WriteByte('-')
+			lastHyphen = true
+		}
 	}
 
-	return &updatedBlog, nil
+	return strings.Trim(b.String(), "-")
 }
