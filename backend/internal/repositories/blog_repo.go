@@ -2,36 +2,87 @@ package repositories
 
 import (
 	"database/sql"
-	"fmt"
+	"time"
 
 	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
 	"github.com/husni-robani/abstracted_self/backend/internal/models"
-	"github.com/husni-robani/abstracted_self/backend/internal/utils"
 )
 
 type BlogRepository struct {
 	db *sql.DB
 }
 
-func NewBlogRepository(DB *sql.DB) BlogRepository{
+func NewBlogRepository(DB *sql.DB) BlogRepository {
 	return BlogRepository{
 		db: DB,
 	}
 }
 
-func (repo BlogRepository) GetAllBlogs() ([]models.Blog, error){
+type rowScanner interface {
+	Scan(dest ...any) error
+}
+
+const blogColumns = "id, title, slug, image, content, blog_snippet, published, created_at, updated_at"
+
+func scanBlog(s rowScanner) (models.Blog, error) {
+	blog := models.Blog{}
+
+	var image sql.NullString
+	var blogSnippet sql.NullString
+	var updatedAt sql.NullTime
+
+	err := s.Scan(
+		&blog.Id,
+		&blog.Title,
+		&blog.Slug,
+		&image,
+		&blog.Content,
+		&blogSnippet,
+		&blog.Published,
+		&blog.CreatedAt,
+		&updatedAt,
+	)
+	if err != nil {
+		return blog, err
+	}
+
+	if image.Valid {
+		blog.Image = image.String
+	}
+	if blogSnippet.Valid {
+		blog.BlogSnippet = blogSnippet.String
+	}
+	if updatedAt.Valid {
+		blog.UpdatedAt = &updatedAt.Time
+	}
+
+	return blog, nil
+}
+
+func nullableString(s string) sql.NullString {
+	return sql.NullString{String: s, Valid: s != ""}
+}
+
+func nullableTime(t *time.Time) sql.NullTime {
+	if t == nil {
+		return sql.NullTime{}
+	}
+	return sql.NullTime{Time: *t, Valid: true}
+}
+
+func (repo BlogRepository) GetAllBlogs() ([]models.Blog, error) {
 	var blogs []models.Blog
-	rows, err := repo.db.Query("Select id, title, url, image, blog_snippet from blogs")
+
+	rows, err := repo.db.Query("SELECT " + blogColumns + " FROM blogs ORDER BY id")
 	if err != nil {
 		logger.Error.Printf("get blog data error: %#v", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
 
-	for rows.Next(){
-		blog := models.Blog{}
-
-		err := rows.Scan(&blog.Id, &blog.Title, &blog.URL, &blog.Image, &blog.BlogSnippet)
+	for rows.Next() {
+		blog, err := scanBlog(rows)
 		if err != nil {
 			logger.Error.Printf("scan rows error: %#v", err.Error())
 			return nil, err
@@ -44,11 +95,9 @@ func (repo BlogRepository) GetAllBlogs() ([]models.Blog, error){
 }
 
 func (repo BlogRepository) GetBlogByID(id int) (models.Blog, error) {
-	blog := models.Blog{}
+	row := repo.db.QueryRow("SELECT "+blogColumns+" FROM blogs WHERE id = $1", id)
 
-	row := repo.db.QueryRow("select id, title, url, image, blog_snippet from blogs where id = $1", id)
-
-	err := row.Scan(&blog.Id, &blog.Title, &blog.URL, &blog.Image, &blog.BlogSnippet)
+	blog, err := scanBlog(row)
 	if err != nil {
 		logger.Error.Printf("error select blog: %#v", err.Error())
 		return blog, err
@@ -58,58 +107,58 @@ func (repo BlogRepository) GetBlogByID(id int) (models.Blog, error) {
 }
 
 func (repo BlogRepository) CreateBlog(blog requests.CreateBlogRequest) error {
-	result, err := repo.db.Exec("INSERT INTO blogs (title, url, image, blog_snippet) VALUES ($1, $2, $3, $4)", blog.Title, blog.URL, blog.Image, blog.BlogSnippet)
+	_, err := repo.db.Exec(
+		"INSERT INTO blogs (title, slug, image, content, blog_snippet, published) VALUES ($1, $2, $3, $4, $5, $6)",
+		blog.Title, blog.Slug, nullableString(blog.Image), blog.Content, nullableString(blog.BlogSnippet), blog.Published,
+	)
 	if err != nil {
 		logger.Error.Printf("error insert blog: %#v", err.Error())
 		return err
 	}
 	logger.Info.Print("blog created!")
 
-	totalRowsAffected, err := result.RowsAffected()
-	if err != nil {
-		logger.Error.Printf("error get total rows affected: %#v", err.Error())
-		return err
-	}
-
-	logger.Info.Printf("row affected: %v", totalRowsAffected)
-
 	return nil
 }
 
 func (repo BlogRepository) DeleteBlog(id int) error {
-	result, err := repo.db.Exec("DELETE FROM blogs where id = $1", id)
+	_, err := repo.db.Exec("DELETE FROM blogs WHERE id = $1", id)
 	if err != nil {
-		 logger.Error.Printf("error delete blog: %v", err.Error())
-		 return err
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		logger.Error.Printf("error get total rows affected: %v", err.Error())
+		logger.Error.Printf("error delete blog: %v", err.Error())
 		return err
 	}
 
-	logger.Info.Printf("row affected: %v", rowsAffected)
-	
+	logger.Info.Printf("blog deleted: %v", id)
+
 	return nil
 }
 
-func (repo BlogRepository) UpdateBlog(id int, updateValues map[string]any) error {
-	query := utils.GenerateSingleUpdateQuery("blogs", updateValues, fmt.Sprintf("where id = %d", id))
-
-	result, err := repo.db.Exec(query)
+func (repo BlogRepository) UpdateBlog(id int, blog models.Blog) error {
+	tx, err := repo.db.Begin()
 	if err != nil {
-		logger.Error.Printf("error exec query update: %s\n query: %s", err.Error(), query)
+		logger.Error.Printf("error begin transaction: %v", err.Error())
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.Exec("DELETE FROM blogs WHERE id = $1", id); err != nil {
+		logger.Error.Printf("error delete blog in update: %v", err.Error())
 		return err
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		logger.Error.Printf("error get row affected: %s", err.Error())
+	if _, err := tx.Exec(
+		"INSERT INTO blogs (id, title, slug, image, content, blog_snippet, published, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+		id, blog.Title, blog.Slug, nullableString(blog.Image), blog.Content, nullableString(blog.BlogSnippet), blog.Published, blog.CreatedAt, nullableTime(blog.UpdatedAt),
+	); err != nil {
+		logger.Error.Printf("error insert blog in update: %v", err.Error())
 		return err
 	}
 
-	logger.Info.Printf("Row affected: %v", rowsAffected)
+	if err := tx.Commit(); err != nil {
+		logger.Error.Printf("error commit transaction: %v", err.Error())
+		return err
+	}
+
+	logger.Info.Printf("blog updated: %v", id)
 
 	return nil
 }
