@@ -22,6 +22,8 @@ tags:
     description: Profile data (name, summary, bio, skills).
   - name: Storage
     description: Static assets served from storage.
+  - name: Images
+    description: Global image upload and serving.
   - name: Daily Visits
     description: Profile visit tracking.
 
@@ -97,8 +99,18 @@ paths:
   /blogs:
     get:
       tags: [Blogs]
-      summary: Get all blog posts
+      summary: Get all blog posts (without content)
+      description: |
+        Returns blog posts without the markdown `content` and without content images
+        (use `GET /blogs/{id}` for the full post). The optional `published` query
+        parameter filters by publish status; when omitted, all blogs are returned.
       security: []
+      parameters:
+        - name: published
+          in: query
+          description: Filter by publish status
+          schema:
+            type: boolean
       responses:
         "200":
           description: List of blogs
@@ -112,7 +124,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: "#/components/schemas/Blog"
+                      $ref: "#/components/schemas/BlogSummary"
         "500":
           $ref: "#/components/responses/InternalServerError"
     post:
@@ -124,7 +136,7 @@ paths:
           multipart/form-data:
             schema:
               type: object
-              required: [title, content]
+              required: [title, content, file]
               properties:
                 title:
                   type: string
@@ -139,10 +151,15 @@ paths:
                 published:
                   type: boolean
                   default: false
+                content_image_ids:
+                  type: array
+                  description: Ids of images (uploaded via POST /images) used inside the content.
+                  items:
+                    type: integer
                 file:
                   type: string
                   format: binary
-                  description: Optional cover image (JPEG/PNG, max 300KB).
+                  description: Required cover image (JPEG/PNG, max 300KB).
       responses:
         "201":
           $ref: "#/components/responses/NoDataSuccess"
@@ -155,6 +172,7 @@ paths:
     get:
       tags: [Blogs]
       summary: Get a blog post by ID
+      description: Returns the full blog post including markdown content and content images.
       security: []
       parameters:
         - $ref: "#/components/parameters/IdPath"
@@ -177,7 +195,10 @@ paths:
     put:
       tags: [Blogs]
       summary: Update a blog post (full replace)
-      description: Replaces the blog post; implemented as delete + insert preserving the same id.
+      description: |
+        Replaces the blog post; implemented as delete + insert preserving the same id.
+        The cover image is replaced when `file` is provided; `content_image_ids` fully
+        replaces the content-image mapping and removed images are deleted.
       parameters:
         - $ref: "#/components/parameters/IdPath"
       requestBody:
@@ -200,6 +221,11 @@ paths:
                   type: string
                 published:
                   type: boolean
+                content_image_ids:
+                  type: array
+                  description: Full replacement list of content image ids.
+                  items:
+                    type: integer
                 file:
                   type: string
                   format: binary
@@ -225,11 +251,73 @@ paths:
     delete:
       tags: [Blogs]
       summary: Delete a blog post by ID
+      description: Also deletes the cover image and content images (rows and files).
       parameters:
         - $ref: "#/components/parameters/IdPath"
       responses:
         "200":
           $ref: "#/components/responses/NoDataSuccess"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /images:
+    post:
+      tags: [Images]
+      summary: Upload an image
+      description: |
+        Uploads an image to storage, records it in the global images table and returns
+        the image data including a relative URL (`/images/{id}`) that can be inserted
+        into markdown content.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Image file (JPEG/PNG, max 300KB).
+      responses:
+        "201":
+          description: Image uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/Image"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /images/{id}:
+    get:
+      tags: [Images]
+      summary: Serve an image by ID
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      responses:
+        "200":
+          description: The image file
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
         "404":
           $ref: "#/components/responses/NotFound"
         "500":
@@ -576,6 +664,7 @@ paths:
                     format: binary
                 images_to_delete:
                   type: array
+                  description: Ids of images (from the global images table) to delete.
                   items:
                     type: integer
       responses:
@@ -804,24 +893,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /assets/images/{file_name}:
-    get:
-      tags: [Storage]
-      summary: Serve an image asset
-      security: []
-      parameters:
-        - $ref: "#/components/parameters/FileNamePath"
-      responses:
-        "200":
-          description: Image file
-          content:
-            image/jpeg:
-              schema:
-                type: string
-                format: binary
-        "404":
-          $ref: "#/components/responses/NotFound"
-
   /assets/documents/{file_name}:
     get:
       tags: [Storage]
@@ -967,6 +1038,46 @@ components:
                 nullable: true
 
   schemas:
+    Image:
+      type: object
+      properties:
+        id:
+          type: integer
+        url:
+          type: string
+          description: Relative URL to access the image (`/images/{id}`).
+        file_name:
+          type: string
+        file_size:
+          type: integer
+        mime_type:
+          type: string
+
+    BlogSummary:
+      type: object
+      description: Blog list item; excludes content and content images.
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        slug:
+          type: string
+        blog_snippet:
+          type: string
+          nullable: true
+        published:
+          type: boolean
+        cover_image:
+          $ref: "#/components/schemas/Image"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+
     Blog:
       type: object
       properties:
@@ -976,9 +1087,6 @@ components:
           type: string
         slug:
           type: string
-        image:
-          type: string
-          nullable: true
         content:
           type: string
           description: Markdown content.
@@ -987,6 +1095,13 @@ components:
           nullable: true
         published:
           type: boolean
+        cover_image:
+          $ref: "#/components/schemas/Image"
+        images:
+          type: array
+          description: Images used inside the content.
+          items:
+            $ref: "#/components/schemas/Image"
         created_at:
           type: string
           format: date-time
@@ -1046,22 +1161,6 @@ components:
           items:
             type: string
 
-    ProjectImage:
-      type: object
-      properties:
-        id:
-          type: integer
-        project_id:
-          type: integer
-        file_name:
-          type: string
-        file_size:
-          type: integer
-        mime_type:
-          type: string
-        image_url:
-          type: string
-
     Project:
       type: object
       properties:
@@ -1090,7 +1189,7 @@ components:
         images:
           type: array
           items:
-            $ref: "#/components/schemas/ProjectImage"
+            $ref: "#/components/schemas/Image"
 
     Skill:
       type: object
