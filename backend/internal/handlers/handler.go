@@ -17,11 +17,16 @@ type Handlers struct {
 	StorageHandler *StorageHandler
 	ProfileHandler *ProfileHandler
 	DailyVisitHandler *DailyVisitHandler
+	ImageHandler *ImageHandler
 }
 
 func SetupHandler(db *sql.DB) Handlers {
+	imageRepo := repositories.NewImageRepository(db)
+	imageService := services.NewImageService(imageRepo)
+	imageHandler := NewImageHandler(imageService)
+
 	blogRepo := repositories.NewBlogRepository(db)
-	blogService := services.NewBlogService(blogRepo)
+	blogService := services.NewBlogService(blogRepo, imageRepo)
 	blogHandler := NewBlogHandler(blogService)
 
 	authService := services.NewAuthService()
@@ -40,8 +45,7 @@ func SetupHandler(db *sql.DB) Handlers {
 	experienceHandler := NewExperienceHandler(experienceService)
 
 	projectRepo := repositories.NewProjectRepository(db)
-	projectImageRepo := repositories.NewProjectImageRepository(db)
-	projectService := services.NewProjectService(projectRepo, projectImageRepo)
+	projectService := services.NewProjectService(projectRepo, imageRepo)
 	projectHandler := NewProjectHandler(projectService)
 
 	storageHandler := NewStorageHandler()
@@ -64,5 +68,6 @@ func SetupHandler(db *sql.DB) Handlers {
 		StorageHandler: &storageHandler,
 		ProfileHandler: &ProfileHandler,
 		DailyVisitHandler: &dailyVisitHandler,
+		ImageHandler: &imageHandler,
 	}
 }

@@ -21,6 +21,8 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 	router.GET("/blogs", handler.BlogHandler.GetBlogs)
 	router.GET("/blogs/:id", handler.BlogHandler.GetBlogByID)
 
+	router.GET("/images/:id", handler.ImageHandler.GetImage)
+
 	router.GET("/tech_types", handler.TechnologyTypeHandler.GetTypes)
 	router.GET("/tech_types_technologies", handler.TechnologyTypeHandler.GetTypesWithTechnologies)
 
@@ -32,7 +34,6 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 	router.GET("/projects", handler.ProjectHandler.GetProjects)
 	router.GET("/projects/:id", handler.ProjectHandler.GetProjectById)
 
-	router.GET("/assets/images/:file_name", handler.StorageHandler.GetImages)
 	router.GET("/assets/documents/:file_name", handler.StorageHandler.GetDocuments)
 	router.GET("/assets/icons/:file_name", handler.StorageHandler.GetIcons)
 
@@ -51,6 +52,8 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 		authorizedRouter.POST("/blogs", handler.BlogHandler.CreateBlog)
 		authorizedRouter.DELETE("/blogs/:id", handler.BlogHandler.DeleteBlog)
 		authorizedRouter.PUT("/blogs/:id", handler.BlogHandler.UpdateBlog)
+
+		authorizedRouter.POST("/images", handler.ImageHandler.UploadImage)
 
 		authorizedRouter.POST("/tech_types", handler.TechnologyTypeHandler.CreateTypes)
 		authorizedRouter.DELETE("/tech_types/:id", handler.TechnologyTypeHandler.DeleteTypeByID)
