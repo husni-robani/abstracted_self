@@ -10,6 +10,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
+	"github.com/husni-robani/abstracted_self/backend/internal/models"
 	"github.com/husni-robani/abstracted_self/backend/internal/response"
 	"github.com/husni-robani/abstracted_self/backend/internal/services"
 	"github.com/husni-robani/abstracted_self/backend/internal/utils"
@@ -29,7 +30,18 @@ func NewBlogHandler(blogService services.BlogService) BlogHandler {
 }
 
 func (handler BlogHandler) GetBlogs(c *gin.Context) {
-	blogs, err := handler.Service.GetAllBlogs()
+	var published *bool
+
+	switch c.Query("published") {
+	case "true":
+		value := true
+		published = &value
+	case "false":
+		value := false
+		published = &value
+	}
+
+	blogs, err := handler.Service.GetAllBlogs(published)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "get blogs failed", err.Error())
 		return
@@ -74,18 +86,17 @@ func (handler BlogHandler) CreateBlog(c *gin.Context) {
 		return
 	}
 
-	// get and validate optional image
-	if file, err := c.FormFile("file"); err == nil {
+	// cover image is required
+	file, err := c.FormFile("file")
+	if err != nil {
+		invalidFieldErrors["file"] = "required"
+	} else {
 		blogData.ImageFile = file
 		logger.Info.Printf("file received: %s\n", file.Filename)
 
 		if err := utils.ValidateFile(blogData.ImageFile, []string{"image/jpeg", "image/png"}, 300<<10); err != nil {
-			invalidFieldErrors["image"] = err.Error()
+			invalidFieldErrors["file"] = err.Error()
 		}
-	} else if err != http.ErrMissingFile {
-		logger.Error.Printf("error get image file: %v", err.Error())
-		response.Error(c, http.StatusBadRequest, "create blog failed", "invalid image file")
-		return
 	}
 
 	// return all validation errors
@@ -96,6 +107,10 @@ func (handler BlogHandler) CreateBlog(c *gin.Context) {
 	}
 
 	if err := handler.Service.CreateBlog(blogData); err != nil {
+		if errors.Is(err, models.ErrImageNotFound) {
+			response.Error(c, http.StatusBadRequest, "invalid data", map[string]string{"content_image_ids": "one or more images not found"})
+			return
+		}
 		response.Error(c, http.StatusInternalServerError, "create blog failed", nil)
 		return
 	}
@@ -145,11 +160,11 @@ func (blogHandler BlogHandler) UpdateBlog(c *gin.Context) {
 		return
 	}
 
-	// get and validate optional image
+	// get and validate optional replacement cover image
 	if file, err := c.FormFile("file"); err == nil {
 		req.ImageFile = file
 		if err := utils.ValidateFile(req.ImageFile, []string{"image/jpeg", "image/png"}, 300<<10); err != nil {
-			invalidFieldErrors["image"] = err.Error()
+			invalidFieldErrors["file"] = err.Error()
 		}
 	} else if err != http.ErrMissingFile {
 		logger.Error.Printf("error get image file: %v", err.Error())
@@ -167,6 +182,10 @@ func (blogHandler BlogHandler) UpdateBlog(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			response.Error(c, http.StatusNotFound, "blog not found", nil)
+			return
+		}
+		if errors.Is(err, models.ErrImageNotFound) {
+			response.Error(c, http.StatusBadRequest, "invalid data", map[string]string{"content_image_ids": "one or more images not found"})
 			return
 		}
 		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
