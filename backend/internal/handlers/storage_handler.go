@@ -19,24 +19,6 @@ func NewStorageHandler() (StorageHandler) {
 	return StorageHandler{}
 }
 
-func (StorageHandler) GetImages(c *gin.Context) {
-	cwd, _ := os.Getwd()
-	file_name := c.Param("file_name")
-	full_path := filepath.Join(cwd, os.Getenv("IMAGES_STORAGE_PATH"), file_name)
-
-	// Get file info
-	_, err := os.Stat(full_path)
-	if err != nil || os.IsNotExist(err){
-		logger.Error.Printf("File not found error: %v", full_path)
-		response.Error(c, http.StatusNotFound, "File Not Found", nil)
-		return
-	}
-
-	c.Header("Content-Type", "image/jpeg")
-	c.Header("Cache-Control", "public, max-age=86400")
-	c.File(full_path)
-}
-
 func (StorageHandler) GetDocuments(c *gin.Context) {
 	cwd, _ := os.Getwd()
 	file_name := c.Param("file_name")

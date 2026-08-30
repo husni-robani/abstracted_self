@@ -21,15 +21,50 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
+-- Name: blog_images; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.blog_images (
+    id integer NOT NULL,
+    blog_id integer NOT NULL,
+    image_id integer NOT NULL
+);
+
+
+--
+-- Name: blog_images_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.blog_images_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: blog_images_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.blog_images_id_seq OWNED BY public.blog_images.id;
+
+
+--
 -- Name: blogs; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.blogs (
     id integer NOT NULL,
     title character varying(100) NOT NULL,
-    url text NOT NULL,
-    image character varying(100) NOT NULL,
-    blog_snippet text
+    slug character varying(200) NOT NULL,
+    content text NOT NULL,
+    blog_snippet text,
+    published boolean DEFAULT false NOT NULL,
+    cover_image_id integer NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    updated_at timestamp without time zone
 );
 
 
@@ -124,16 +159,46 @@ ALTER SEQUENCE public.experiences_id_seq OWNED BY public.experiences.id;
 
 
 --
+-- Name: images; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.images (
+    id integer NOT NULL,
+    file_name character varying(100) NOT NULL,
+    file_size integer NOT NULL,
+    mime_type character varying(50) NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: images_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.images_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: images_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.images_id_seq OWNED BY public.images.id;
+
+
+--
 -- Name: project_images; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.project_images (
     id integer NOT NULL,
     project_id integer NOT NULL,
-    file_name character varying(100) NOT NULL,
-    file_size integer NOT NULL,
-    mime_type character varying(50) NOT NULL,
-    image_url text NOT NULL
+    image_id integer NOT NULL
 );
 
 
@@ -255,6 +320,13 @@ ALTER SEQUENCE public.technology_types_id_seq OWNED BY public.technology_types.i
 
 
 --
+-- Name: blog_images id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.blog_images ALTER COLUMN id SET DEFAULT nextval('public.blog_images_id_seq'::regclass);
+
+
+--
 -- Name: blogs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -273,6 +345,13 @@ ALTER TABLE ONLY public.daily_visits ALTER COLUMN id SET DEFAULT nextval('public
 --
 
 ALTER TABLE ONLY public.experiences ALTER COLUMN id SET DEFAULT nextval('public.experiences_id_seq'::regclass);
+
+
+--
+-- Name: images id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.images ALTER COLUMN id SET DEFAULT nextval('public.images_id_seq'::regclass);
 
 
 --
@@ -304,11 +383,27 @@ ALTER TABLE ONLY public.technology_types ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: blog_images blog_images_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.blog_images
+    ADD CONSTRAINT blog_images_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: blogs blogs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.blogs
     ADD CONSTRAINT blogs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: blogs blogs_slug_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.blogs
+    ADD CONSTRAINT blogs_slug_key UNIQUE (slug);
 
 
 --
@@ -333,6 +428,14 @@ ALTER TABLE ONLY public.daily_visits
 
 ALTER TABLE ONLY public.experiences
     ADD CONSTRAINT experiences_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: images images_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.images
+    ADD CONSTRAINT images_pkey PRIMARY KEY (id);
 
 
 --
@@ -368,11 +471,43 @@ ALTER TABLE ONLY public.technology_types
 
 
 --
+-- Name: blog_images blog_images_blog_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.blog_images
+    ADD CONSTRAINT blog_images_blog_id_fkey FOREIGN KEY (blog_id) REFERENCES public.blogs(id) ON DELETE CASCADE;
+
+
+--
+-- Name: blog_images blog_images_image_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.blog_images
+    ADD CONSTRAINT blog_images_image_id_fkey FOREIGN KEY (image_id) REFERENCES public.images(id) ON DELETE CASCADE;
+
+
+--
+-- Name: blogs blogs_cover_image_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.blogs
+    ADD CONSTRAINT blogs_cover_image_fkey FOREIGN KEY (cover_image_id) REFERENCES public.images(id);
+
+
+--
 -- Name: project_images fk_project; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.project_images
     ADD CONSTRAINT fk_project FOREIGN KEY (project_id) REFERENCES public.projects(id) ON DELETE CASCADE;
+
+
+--
+-- Name: project_images fk_image; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.project_images
+    ADD CONSTRAINT fk_image FOREIGN KEY (image_id) REFERENCES public.images(id) ON DELETE CASCADE;
 
 
 --

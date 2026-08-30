@@ -13,5 +13,5 @@ type Project struct {
 	ProjectURL string `json:"project_url"`
 	StartDate time.Time `json:"start_date"`
 	EndDate time.Time `json:"end_date"`
-	Images []ProjectImage `json:"images"`
+	Images []Image `json:"images"`
 }

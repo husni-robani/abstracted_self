@@ -32,87 +32,74 @@ func (repo ProjectRepository) CreateNewProject(project requests.CreateProjectReq
 	return int(projectId), nil
 }
 
-type ProjectWithImage struct {
-	ProjectId int
-	Name string
-	Description string
-	TechStack []string
-	SourceURL []string
-	ProjectURL sql.NullString
-	StartDate sql.NullTime
-	EndDate sql.NullTime
-	ImageId sql.NullInt32
-	FileName sql.NullString
+func scanProject(row rowScanner, project *models.Project) error {
+	var projectURL sql.NullString
+	var startDate sql.NullTime
+	var endDate sql.NullTime
+
+	if err := row.Scan(&project.Id, &project.Name, &project.Description, pq.Array(&project.TechStack), pq.Array(&project.SourceURL), &projectURL, &startDate, &endDate); err != nil {
+		return err
+	}
+
+	project.ProjectURL = projectURL.String
+	if startDate.Valid {
+		project.StartDate = startDate.Time
+	}
+	if endDate.Valid {
+		project.EndDate = endDate.Time
+	}
+
+	return nil
 }
 
-func (repo ProjectRepository) GetAllProjectsWithImages() ([]models.Project, error) {
-	query := "SELECT p.id, p.name, p.description, p.tech_stack, p.source_url, p.project_url, p.start_date, p.end_date, pi.id, pi.file_name FROM projects p LEFT JOIN project_images pi ON p.id = pi.project_id ORDER BY p.id desc"
+const projectSelect = "SELECT id, name, description, tech_stack, source_url, project_url, start_date, end_date FROM projects"
 
-	rows, err := repo.db.Query(query)
+func (repo ProjectRepository) GetAllProjectsWithImages() ([]models.Project, error) {
+	rows, err := repo.db.Query(projectSelect + " ORDER BY id desc")
 	if err != nil {
 		logger.Error.Printf("failed exec query select: %v", err)
 		return nil, err
 	}
+	defer rows.Close()
 
-	projectContainers := []ProjectWithImage{}
+	var projects []models.Project
 
 	for rows.Next() {
-		var project ProjectWithImage
-		if err := rows.Scan(&project.ProjectId, &project.Name, &project.Description, pq.Array(&project.TechStack), pq.Array(&project.SourceURL), &project.ProjectURL, &project.StartDate, &project.EndDate, &project.ImageId, &project.FileName); err != nil {
+		project := models.Project{}
+		if err := scanProject(rows, &project); err != nil {
+			logger.Error.Printf("failed to scan project: %v", err)
+			return nil, err
+		}
+
+		projects = append(projects, project)
+	}
+
+	imageRows, err := repo.db.Query(
+		"SELECT pi.project_id, i.id, i.file_name, i.file_size, i.mime_type FROM project_images pi JOIN images i ON i.id = pi.image_id ORDER BY i.id",
+	)
+	if err != nil {
+		logger.Error.Printf("failed exec query select project images: %v", err)
+		return nil, err
+	}
+	defer imageRows.Close()
+
+	imagesByProject := make(map[int][]models.Image)
+
+	for imageRows.Next() {
+		var projectId int
+		image := models.Image{}
+
+		if err := imageRows.Scan(&projectId, &image.Id, &image.FileName, &image.FileSize, &image.MimeType); err != nil {
 			logger.Error.Printf("failed to scan project image: %v", err)
 			return nil, err
 		}
 
-		projectContainers = append(projectContainers, project)
+		image.URL = models.ImageURL(image.Id)
+		imagesByProject[projectId] = append(imagesByProject[projectId], image)
 	}
 
-	var projects []models.Project
-
-	for _, projectContainer := range projectContainers {
-
-		project := models.Project{}
-		if len(projects) == 0{
-			project.Id = projectContainer.ProjectId
-			project.Name = projectContainer.Name
-			project.Description = projectContainer.Description
-			project.TechStack = projectContainer.TechStack
-			project.SourceURL = projectContainer.SourceURL
-			project.ProjectURL = projectContainer.ProjectURL.String
-			project.StartDate = projectContainer.StartDate.Time
-			project.EndDate = projectContainer.EndDate.Time
-			project.Images = append(project.Images, models.ProjectImage{
-				Id: int(projectContainer.ImageId.Int32),
-				FileName: projectContainer.FileName.String,
-			})
-
-			projects = append(projects, project)
-			continue
-		}
-
-		if projects[len(projects) - 1].Id != projectContainer.ProjectId {
-			project.Id = projectContainer.ProjectId
-			project.Name = projectContainer.Name
-			project.Description = projectContainer.Description
-			project.TechStack = projectContainer.TechStack
-			project.SourceURL = projectContainer.SourceURL
-			project.ProjectURL = projectContainer.ProjectURL.String
-			project.StartDate = projectContainer.StartDate.Time
-			project.EndDate = projectContainer.EndDate.Time
-			project.Images = append(project.Images, models.ProjectImage{
-				Id: int(projectContainer.ImageId.Int32),
-				FileName: projectContainer.FileName.String,
-			})
-
-			projects = append(projects, project)
-			continue
-		}
-
-		if projects[len(projects) - 1].Id == projectContainer.ProjectId {
-			projects[len(projects) - 1].Images = append(projects[len(projects)-1].Images, models.ProjectImage{
-				Id: int(projectContainer.ImageId.Int32),
-				FileName: projectContainer.FileName.String,
-			})
-		}
+	for i := range projects {
+		projects[i].Images = imagesByProject[projects[i].Id]
 	}
 
 	return projects, nil
@@ -121,14 +108,55 @@ func (repo ProjectRepository) GetAllProjectsWithImages() ([]models.Project, erro
 func (repo ProjectRepository) GetProjectById(id int) (models.Project, error) {
 	var project models.Project
 
-	row := repo.db.QueryRow("SELECT p.id, p.name, p.description, p.tech_stack, p.source_url, p.project_url, p.start_date, p.end_date FROM projects p WHERE id = $1", id)
+	row := repo.db.QueryRow(projectSelect+" WHERE id = $1", id)
 
-	if err := row.Scan(&project.Id, &project.Name, &project.Description, pq.Array(&project.TechStack), pq.Array(&project.SourceURL), &project.ProjectURL, &project.StartDate, &project.EndDate); err != nil {
+	if err := scanProject(row, &project); err != nil {
 		logger.Error.Printf("failed to scan: %v", err)
-		return models.Project{}, nil
+		return models.Project{}, err
 	}
 
 	return project, nil
+}
+
+func (repo ProjectRepository) GetImagesByProjectId(projectId int) ([]models.Image, error) {
+	rows, err := repo.db.Query(
+		"SELECT i.id, i.file_name, i.file_size, i.mime_type FROM project_images pi JOIN images i ON i.id = pi.image_id WHERE pi.project_id = $1 ORDER BY i.id",
+		projectId,
+	)
+	if err != nil {
+		logger.Error.Printf("failed to exec query select project images: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var images []models.Image
+
+	for rows.Next() {
+		image := models.Image{}
+
+		if err := rows.Scan(&image.Id, &image.FileName, &image.FileSize, &image.MimeType); err != nil {
+			logger.Error.Printf("failed to scan data: %v", err)
+			return nil, err
+		}
+
+		image.URL = models.ImageURL(image.Id)
+		images = append(images, image)
+	}
+
+	return images, nil
+}
+
+func (repo ProjectRepository) AddProjectImages(projectId int, imageIds []int) error {
+	for _, imageId := range imageIds {
+		if _, err := repo.db.Exec("INSERT INTO project_images (project_id, image_id) VALUES ($1, $2)", projectId, imageId); err != nil {
+			logger.Error.Printf("failed to insert project_image mapping to database: %v", err)
+			return err
+		}
+	}
+
+	logger.Info.Printf("create project images mappings successful | project_id: %d", projectId)
+
+	return nil
 }
 
 func (repo ProjectRepository) DeleteProjectById(id int) error {
@@ -152,7 +180,7 @@ func (repo ProjectRepository) DeleteProjectById(id int) error {
 func (repo ProjectRepository) UpdateProjectById(query string) error {
 	timeOut, cancel := context.WithTimeout(context.Background(), 20 * time.Second)
 	defer cancel()
-	
+
 	result, err := repo.db.ExecContext(timeOut, query)
 	if err != nil {
 		logger.Error.Printf("Query execution is failed: %v", err)

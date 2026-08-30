@@ -1,0 +1,1332 @@
+openapi: 3.0.3
+info:
+  title: Abstracted Self API
+  description: |
+    Backend API for the personal portfolio site and blog CMS.
+    All responses follow a common envelope: `{ "message": string, "data": any, "errors": any }`.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+tags:
+  - name: Auth
+    description: Authentication and session management.
+  - name: Blogs
+    description: Blog post CMS.
+  - name: Projects
+    description: Portfolio projects.
+  - name: Experiences
+    description: Work experiences.
+  - name: Technologies
+    description: Technologies and technology types.
+  - name: Profile
+    description: Profile data (name, summary, bio, skills).
+  - name: Storage
+    description: Static assets served from storage.
+  - name: Images
+    description: Global image upload and serving.
+  - name: Daily Visits
+    description: Profile visit tracking.
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login and obtain a JWT token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/TokenData"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout (clears the in-memory token)
+      responses:
+        "200":
+          $ref: "#/components/responses/NoDataSuccess"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /auth/check:
+    post:
+      tags: [Auth]
+      summary: Check whether the current token is still authenticated
+      responses:
+        "200":
+          $ref: "#/components/responses/NoDataSuccess"
+
+  /auth/renew:
+    get:
+      tags: [Auth]
+      summary: Renew the JWT token
+      responses:
+        "200":
+          description: Token renewed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/TokenData"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /blogs:
+    get:
+      tags: [Blogs]
+      summary: Get all blog posts (without content)
+      description: |
+        Returns blog posts without the markdown `content` and without content images
+        (use `GET /blogs/{id}` for the full post). The optional `published` query
+        parameter filters by publish status; when omitted, all blogs are returned.
+      security: []
+      parameters:
+        - name: published
+          in: query
+          description: Filter by publish status
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: List of blogs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BlogSummary"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      tags: [Blogs]
+      summary: Create a blog post
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [title, content, file]
+              properties:
+                title:
+                  type: string
+                slug:
+                  type: string
+                  description: Optional; auto-generated from title when omitted.
+                content:
+                  type: string
+                  description: Markdown content.
+                blog_snippet:
+                  type: string
+                published:
+                  type: boolean
+                  default: false
+                content_image_ids:
+                  type: array
+                  description: Ids of images (uploaded via POST /images) used inside the content.
+                  items:
+                    type: integer
+                file:
+                  type: string
+                  format: binary
+                  description: Required cover image (JPEG/PNG, max 300KB).
+      responses:
+        "201":
+          $ref: "#/components/responses/NoDataSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /blogs/{id}:
+    get:
+      tags: [Blogs]
+      summary: Get a blog post by ID
+      description: Returns the full blog post including markdown content and content images.
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      responses:
+        "200":
+          description: Blog post
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/Blog"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    put:
+      tags: [Blogs]
+      summary: Update a blog post (full replace)
+      description: |
+        Replaces the blog post; implemented as delete + insert preserving the same id.
+        The cover image is replaced when `file` is provided; `content_image_ids` fully
+        replaces the content-image mapping and removed images are deleted.
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [title, content]
+              properties:
+                title:
+                  type: string
+                slug:
+                  type: string
+                  description: Optional; auto-generated from title when omitted.
+                content:
+                  type: string
+                  description: Markdown content.
+                blog_snippet:
+                  type: string
+                published:
+                  type: boolean
+                content_image_ids:
+                  type: array
+                  description: Full replacement list of content image ids.
+                  items:
+                    type: integer
+                file:
+                  type: string
+                  format: binary
+                  description: Optional replacement cover image (JPEG/PNG, max 300KB).
+      responses:
+        "200":
+          description: Updated blog post
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/Blog"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      tags: [Blogs]
+      summary: Delete a blog post by ID
+      description: Also deletes the cover image and content images (rows and files).
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      responses:
+        "200":
+          $ref: "#/components/responses/NoDataSuccess"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /images:
+    post:
+      tags: [Images]
+      summary: Upload an image
+      description: |
+        Uploads an image to storage, records it in the global images table and returns
+        the image data including a relative URL (`/images/{id}`) that can be inserted
+        into markdown content.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Image file (JPEG/PNG, max 300KB).
+      responses:
+        "201":
+          description: Image uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/Image"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /images/{id}:
+    get:
+      tags: [Images]
+      summary: Serve an image by ID
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      responses:
+        "200":
+          description: The image file
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /tech_types:
+    get:
+      tags: [Technologies]
+      summary: Get all technology types
+      security: []
+      responses:
+        "200":
+          description: List of technology types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TechnologyType"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      tags: [Technologies]
+      summary: Create technology types
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTypesRequest"
+      responses:
+        "201":
+          $ref: "#/components/responses/NoDataSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /tech_types_technologies:
+    get:
+      tags: [Technologies]
+      summary: Get all technology types with their technologies
+      security: []
+      responses:
+        "200":
+          description: List of technology types with nested technologies
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TechnologyType"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /tech_types/{id}:
+    delete:
+      tags: [Technologies]
+      summary: Delete a technology type by ID
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      responses:
+        "200":
+          $ref: "#/components/responses/NoDataSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /technologies:
+    get:
+      tags: [Technologies]
+      summary: Get all technologies
+      security: []
+      responses:
+        "200":
+          description: List of technologies
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Technology"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      tags: [Technologies]
+      summary: Create technologies
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/CreateTechnologyRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/NoDataSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /technologies/{id}:
+    delete:
+      tags: [Technologies]
+      summary: Delete a technology by ID
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      responses:
+        "200":
+          $ref: "#/components/responses/NoDataSuccess"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /experiences:
+    get:
+      tags: [Experiences]
+      summary: Get all experiences
+      security: []
+      responses:
+        "200":
+          description: List of experiences
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Experience"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      tags: [Experiences]
+      summary: Create an experience
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateExperienceRequest"
+      responses:
+        "201":
+          $ref: "#/components/responses/NoDataSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /experiences/{id}:
+    get:
+      tags: [Experiences]
+      summary: Get an experience by ID
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      responses:
+        "200":
+          description: Experience
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/Experience"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    patch:
+      tags: [Experiences]
+      summary: Partially update an experience by ID
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateExperienceRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/NoDataSuccess"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      tags: [Experiences]
+      summary: Delete an experience by ID
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      responses:
+        "200":
+          $ref: "#/components/responses/NoDataSuccess"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /projects:
+    get:
+      tags: [Projects]
+      summary: Get all projects with their images
+      security: []
+      responses:
+        "200":
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Project"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      tags: [Projects]
+      summary: Create a project
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, start_date, end_date]
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                tech_stack:
+                  type: array
+                  items:
+                    type: string
+                source_url:
+                  type: array
+                  items:
+                    type: string
+                project_url:
+                  type: string
+                start_date:
+                  type: string
+                  format: date
+                end_date:
+                  type: string
+                  format: date
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        "201":
+          $ref: "#/components/responses/NoDataSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /projects/{id}:
+    get:
+      tags: [Projects]
+      summary: Get a project by ID
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      responses:
+        "200":
+          description: Project
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/Project"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    put:
+      tags: [Projects]
+      summary: Update a project by ID
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                tech_stack:
+                  type: array
+                  items:
+                    type: string
+                source_url:
+                  type: array
+                  items:
+                    type: string
+                project_url:
+                  type: string
+                start_date:
+                  type: string
+                  format: date
+                end_date:
+                  type: string
+                  format: date
+                new_images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                images_to_delete:
+                  type: array
+                  description: Ids of images (from the global images table) to delete.
+                  items:
+                    type: integer
+      responses:
+        "200":
+          $ref: "#/components/responses/NoDataSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      tags: [Projects]
+      summary: Delete a project by ID
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      responses:
+        "200":
+          $ref: "#/components/responses/NoDataSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /profile:
+    get:
+      tags: [Profile]
+      summary: Get profile data (optionally filtered by query params)
+      security: []
+      parameters:
+        - name: name
+          in: query
+          schema:
+            type: boolean
+        - name: summary
+          in: query
+          schema:
+            type: boolean
+        - name: bio
+          in: query
+          schema:
+            type: boolean
+        - name: taglines
+          in: query
+          schema:
+            type: boolean
+        - name: resume
+          in: query
+          schema:
+            type: boolean
+        - name: skill_set
+          in: query
+          schema:
+            type: boolean
+        - name: cache
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Profile data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/Profile"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    put:
+      tags: [Profile]
+      summary: Update profile data
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                summary:
+                  type: string
+                bio:
+                  type: string
+                taglines:
+                  type: array
+                  items:
+                    type: string
+                resume_file:
+                  type: string
+                  format: binary
+                  description: Optional PDF resume (max 300KB).
+      responses:
+        "200":
+          $ref: "#/components/responses/NoDataSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /profile/skill_types:
+    post:
+      tags: [Profile]
+      summary: Add a skill type
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddProfileSkillSetTypeRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/NoDataSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      tags: [Profile]
+      summary: Remove a skill type
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [type_name]
+              properties:
+                type_name:
+                  type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/NoDataSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /profile/skills:
+    post:
+      tags: [Profile]
+      summary: Add a skill to a skill type
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, is_most_used, skill_type, url]
+              properties:
+                name:
+                  type: string
+                is_most_used:
+                  type: boolean
+                skill_type:
+                  type: string
+                url:
+                  type: string
+                icon_file:
+                  type: string
+                  format: binary
+                  description: Optional SVG icon (max 300KB).
+      responses:
+        "200":
+          $ref: "#/components/responses/NoDataSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      tags: [Profile]
+      summary: Remove a skill
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [skill_name]
+              properties:
+                skill_name:
+                  type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/NoDataSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /profile/most_used:
+    post:
+      tags: [Profile]
+      summary: Toggle a skill's "most used" flag
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [skill_name, type_name]
+              properties:
+                skill_name:
+                  type: string
+                type_name:
+                  type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/NoDataSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /assets/documents/{file_name}:
+    get:
+      tags: [Storage]
+      summary: Serve a document asset
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/FileNamePath"
+      responses:
+        "200":
+          description: PDF document
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /assets/icons/{file_name}:
+    get:
+      tags: [Storage]
+      summary: Serve an icon asset
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/FileNamePath"
+      responses:
+        "200":
+          description: SVG icon
+          content:
+            image/svg+xml:
+              schema:
+                type: string
+                format: binary
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /profile_visit:
+    post:
+      tags: [Daily Visits]
+      summary: Record a profile visit
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisitRequest"
+      responses:
+        "201":
+          $ref: "#/components/responses/NoDataSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    FileNamePath:
+      name: file_name
+      in: path
+      required: true
+      schema:
+        type: string
+
+  responses:
+    NoDataSuccess:
+      description: Successful
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              data:
+                nullable: true
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              errors:
+                type: object
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              errors:
+                nullable: true
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              errors:
+                nullable: true
+    Conflict:
+      description: Conflict (duplicate resource)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              errors:
+                nullable: true
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              errors:
+                nullable: true
+
+  schemas:
+    Image:
+      type: object
+      properties:
+        id:
+          type: integer
+        url:
+          type: string
+          description: Relative URL to access the image (`/images/{id}`).
+        file_name:
+          type: string
+        file_size:
+          type: integer
+        mime_type:
+          type: string
+
+    BlogSummary:
+      type: object
+      description: Blog list item; excludes content and content images.
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        slug:
+          type: string
+        blog_snippet:
+          type: string
+          nullable: true
+        published:
+          type: boolean
+        cover_image:
+          $ref: "#/components/schemas/Image"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    Blog:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        slug:
+          type: string
+        content:
+          type: string
+          description: Markdown content.
+        blog_snippet:
+          type: string
+          nullable: true
+        published:
+          type: boolean
+        cover_image:
+          $ref: "#/components/schemas/Image"
+        images:
+          type: array
+          description: Images used inside the content.
+          items:
+            $ref: "#/components/schemas/Image"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    Technology:
+      type: object
+      properties:
+        id:
+          type: integer
+        type_id:
+          type: integer
+        name:
+          type: string
+
+    TechnologyType:
+      type: object
+      properties:
+        id:
+          type: integer
+        type_name:
+          type: string
+        technologies:
+          type: array
+          items:
+            $ref: "#/components/schemas/Technology"
+
+    Experience:
+      type: object
+      properties:
+        id:
+          type: integer
+        job_title:
+          type: string
+        company_name:
+          type: string
+        work_place:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        description:
+          type: string
+        accomplishments:
+          type: array
+          items:
+            type: string
+        tech_stack:
+          type: array
+          items:
+            type: string
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        tech_stack:
+          type: array
+          items:
+            type: string
+        source_url:
+          type: array
+          items:
+            type: string
+        project_url:
+          type: string
+        start_date:
+          type: string
+          format: date-time
+        end_date:
+          type: string
+          format: date-time
+        images:
+          type: array
+          items:
+            $ref: "#/components/schemas/Image"
+
+    Skill:
+      type: object
+      properties:
+        name:
+          type: string
+        icon_filename:
+          type: string
+        is_most_used:
+          type: boolean
+        url:
+          type: string
+
+    SkillType:
+      type: object
+      properties:
+        type_name:
+          type: string
+        skill_items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Skill"
+
+    Profile:
+      type: object
+      properties:
+        name:
+          type: string
+        summary:
+          type: string
+        bio:
+          type: string
+        taglines:
+          type: array
+          items:
+            type: string
+        resume_file_name:
+          type: string
+        skill_set:
+          type: array
+          items:
+            $ref: "#/components/schemas/SkillType"
+
+    LoginRequest:
+      type: object
+      required: [access_key]
+      properties:
+        access_key:
+          type: string
+
+    TokenData:
+      type: object
+      properties:
+        token:
+          type: string
+
+    CreateTypesRequest:
+      type: object
+      required: [type_names]
+      properties:
+        type_names:
+          type: array
+          items:
+            type: string
+
+    CreateTechnologyRequest:
+      type: object
+      required: [type_id, name]
+      properties:
+        type_id:
+          type: integer
+        name:
+          type: string
+
+    CreateExperienceRequest:
+      type: object
+      required: [job_title, company_name, work_place, start_date]
+      properties:
+        job_title:
+          type: string
+        company_name:
+          type: string
+        work_place:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        description:
+          type: string
+        accomplishments:
+          type: array
+          items:
+            type: string
+        tech_stack:
+          type: array
+          items:
+            type: string
+
+    UpdateExperienceRequest:
+      type: object
+      properties:
+        job_title:
+          type: string
+        company_name:
+          type: string
+        work_place:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        description:
+          type: string
+        accomplishments:
+          type: array
+          items:
+            type: string
+        tech_stack:
+          type: array
+          items:
+            type: string
+
+    AddProfileSkillSetTypeRequest:
+      type: object
+      required: [type_name]
+      properties:
+        type_name:
+          type: string
+
+    VisitRequest:
+      type: object
+      required: [uuid]
+      properties:
+        uuid:
+          type: string
