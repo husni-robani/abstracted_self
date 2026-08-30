@@ -50,7 +50,7 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 		
 		authorizedRouter.POST("/blogs", handler.BlogHandler.CreateBlog)
 		authorizedRouter.DELETE("/blogs/:id", handler.BlogHandler.DeleteBlog)
-		authorizedRouter.PATCH("/blogs/:id", handler.BlogHandler.UpdateBlog)
+		authorizedRouter.PUT("/blogs/:id", handler.BlogHandler.UpdateBlog)
 
 		authorizedRouter.POST("/tech_types", handler.TechnologyTypeHandler.CreateTypes)
 		authorizedRouter.DELETE("/tech_types/:id", handler.TechnologyTypeHandler.DeleteTypeByID)
