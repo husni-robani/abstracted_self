@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sync"
 
 	"github.com/google/uuid"
 	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
@@ -16,13 +15,13 @@ import (
 
 type ProjectService struct {
 	projectRepo repositories.ProjectRepository
-	projectImageRepo repositories.ProjectImageRepository
+	imageRepo   repositories.ImageRepository
 }
 
-func NewProjectService(projectRepo repositories.ProjectRepository, projectImageRepo repositories.ProjectImageRepository) ProjectService {
+func NewProjectService(projectRepo repositories.ProjectRepository, imageRepo repositories.ImageRepository) ProjectService {
 	return ProjectService{
 		projectRepo: projectRepo,
-		projectImageRepo: projectImageRepo,
+		imageRepo:   imageRepo,
 	}
 }
 
@@ -33,27 +32,31 @@ func (service ProjectService) CreateNewProject(project_data requests.CreateProje
 		return err
 	}
 
-	// set new filename and save to storage
+	// store each image to storage and images table
+	imageIds := make([]int, 0, len(project_data.Images))
 	for i := range project_data.Images {
-		// generate new filename
 		extension := filepath.Ext(project_data.Images[i].Filename)
 		newFileName := uuid.New().String() + extension
-		
-		// set new filename to image
+		mimeType := project_data.Images[i].Header.Get("Content-Type")
+
 		project_data.Images[i].Filename = newFileName
 
-		// store to storage
-		err := utils.SaveFile(&project_data.Images[i], "." + os.Getenv("IMAGES_STORAGE_PATH"))
+		if err := utils.SaveFile(&project_data.Images[i], "." + os.Getenv("IMAGES_STORAGE_PATH")); err != nil {
+			return err
+		}
+
+		imageId, err := service.imageRepo.CreateImage(newFileName, project_data.Images[i].Size, mimeType)
 		if err != nil {
 			return err
 		}
+		imageIds = append(imageIds, imageId)
 	}
 
-	// insert images data to database
-	if err := service.projectImageRepo.AddProjectImages(projectId, project_data.Images); err != nil {
+	// insert project_images mappings
+	if err := service.projectRepo.AddProjectImages(projectId, imageIds); err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
@@ -72,7 +75,7 @@ func (service ProjectService) GetProjectById(id int) (models.Project, error) {
 		return models.Project{}, err
 	}
 
-	images, err := service.projectImageRepo.GetImagesByProjectId(id)
+	images, err := service.projectRepo.GetImagesByProjectId(id)
 	if err != nil {
 		return models.Project{}, err
 	}
@@ -83,8 +86,24 @@ func (service ProjectService) GetProjectById(id int) (models.Project, error) {
 }
 
 func (service ProjectService) DeleteProjectById(id int) error {
+	images, err := service.projectRepo.GetImagesByProjectId(id)
+	if err != nil {
+		return err
+	}
+
 	if err := service.projectRepo.DeleteProjectById(id); err != nil {
 		return err
+	}
+
+	for _, image := range images {
+		if err := service.imageRepo.DeleteImage(image.Id); err != nil {
+			logger.Error.Printf("delete image row failed: %v", err.Error())
+			continue
+		}
+
+		if err := utils.RemoveFile("." + os.Getenv("IMAGES_STORAGE_PATH") + "/", image.FileName); err != nil {
+			logger.Error.Printf("delete image file from storage failed: %v", err.Error())
+		}
 	}
 
 	return nil
@@ -92,7 +111,7 @@ func (service ProjectService) DeleteProjectById(id int) error {
 
 func (service ProjectService) UpdateProject(id int, project requests.UpdateProjectRequest) error {
 	// Handle NewImages and ImagesToDelete differently
-	
+
 	// []TechStack data processing for query generation
 	techStack := "{}"
 	if len(project.TechStack) > 0 {
@@ -140,56 +159,45 @@ func (service ProjectService) UpdateProject(id int, project requests.UpdateProje
 
 	// Handle NewImages
 	if len(project.NewImages) > 0 {
-		// set new filename and save to storage
+		imageIds := make([]int, 0, len(project.NewImages))
 		for i := range project.NewImages {
-			// generate new filename
 			extension := filepath.Ext(project.NewImages[i].Filename)
 			newFileName := uuid.New().String() + extension
-			
-			// set new filename to image
+			mimeType := project.NewImages[i].Header.Get("Content-Type")
+
 			project.NewImages[i].Filename = newFileName
 
-			// store to storage
-			err := utils.SaveFile(&project.NewImages[i], "." + os.Getenv("IMAGES_STORAGE_PATH"))
+			if err := utils.SaveFile(&project.NewImages[i], "." + os.Getenv("IMAGES_STORAGE_PATH")); err != nil {
+				return err
+			}
+
+			imageId, err := service.imageRepo.CreateImage(newFileName, project.NewImages[i].Size, mimeType)
 			if err != nil {
 				return err
 			}
+			imageIds = append(imageIds, imageId)
 		}
-		
-		err := service.projectImageRepo.AddProjectImages(id, project.NewImages);
-		if err != nil {
+
+		if err := service.projectRepo.AddProjectImages(id, imageIds); err != nil {
 			return err
 		}
 	}
 
-	// Handle ImagesToDelete
-	if len(project.ImagesToDelete) > 0 {
-		// delete the file in storage
-		var wg sync.WaitGroup
-		for _, id := range project.ImagesToDelete {
-			wg.Add(1)
-			go func(){
-				defer wg.Done()
-				projectImage, err := service.projectImageRepo.GetImageById(id)
-				if err != nil {
-					logger.Error.Printf("delete image file from storage failed: %v", err)
-					return
-				}
-
-				if err := utils.RemoveFile("." + os.Getenv("IMAGES_STORAGE_PATH") + "/", projectImage.FileName); err != nil {
-					logger.Error.Printf("delete image file from storage failed: %v", err)
-					return
-				}
-
-				logger.Info.Printf("Delete %s from storage succeeded", projectImage.FileName)
-			}()
-		}
-		wg.Wait()
-
-		// delete project_images data
-		err := service.projectImageRepo.DeleteProjectImageByID(project.ImagesToDelete...)
+	// Handle ImagesToDelete (image ids)
+	for _, imageId := range project.ImagesToDelete {
+		image, err := service.imageRepo.GetImageByID(imageId)
 		if err != nil {
-			return err
+			logger.Error.Printf("get image to delete failed: %v", err.Error())
+			continue
+		}
+
+		if err := service.imageRepo.DeleteImage(image.Id); err != nil {
+			logger.Error.Printf("delete image row failed: %v", err.Error())
+			continue
+		}
+
+		if err := utils.RemoveFile("." + os.Getenv("IMAGES_STORAGE_PATH") + "/", image.FileName); err != nil {
+			logger.Error.Printf("delete image file from storage failed: %v", err.Error())
 		}
 	}
 
