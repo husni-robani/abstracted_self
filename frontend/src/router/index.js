@@ -6,6 +6,7 @@ import ProjectManagement from "../pages/ProjectManagement.vue";
 import UpdateProject from "../pages/UpdateProject.vue";
 import Dashboard from "../pages/Dashboard.vue";
 import ExperienceManagement from "../pages/ExperienceManagement.vue";
+import BlogManagement from "../pages/BlogManagement.vue";
 import Cookies from "js-cookie";
 import { v4 as uuidv4 } from "uuid";
 
@@ -42,6 +43,34 @@ const routes = [
     name: "Experiences",
     meta: { title: "Experiences", requiresAuth: true },
     component: ExperienceManagement,
+  },
+  {
+    path: "/admin/blog",
+    name: "Blog",
+    meta: { title: "Blog", requiresAuth: true },
+    component: BlogManagement,
+  },
+  {
+    path: "/admin/blog/new",
+    name: "New Post",
+    meta: { title: "New Post", requiresAuth: true },
+    component: () => import("../pages/BlogPostEditor.vue"),
+  },
+  {
+    path: "/admin/blog/:id/edit",
+    name: "Edit Post",
+    meta: { title: "Edit Post", requiresAuth: true },
+    component: () => import("../pages/BlogPostEditor.vue"),
+  },
+  {
+    path: "/blog",
+    name: "Blog List",
+    component: () => import("../pages/BlogList.vue"),
+  },
+  {
+    path: "/blog/:id",
+    name: "Blog Post",
+    component: () => import("../pages/BlogPost.vue"),
   },
 ];
 
