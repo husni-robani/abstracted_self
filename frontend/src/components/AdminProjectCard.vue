@@ -35,7 +35,13 @@
             <img
               v-for="(image, index) in project.images"
               :key="image.id"
-              :src="asset_endpoint + '/' + image.file_name"
+              :src="
+                image.url
+                  ? apiUrl + image.url
+                  : image.file_name
+                  ? apiUrl + '/assets/images/' + image.file_name
+                  : ''
+              "
               class="w-52 h-32 object-cover border border-gray-200 rounded-md"
               alt="Preview"
             />
@@ -86,8 +92,7 @@ import { ArrowTopRightOnSquareIcon } from "@heroicons/vue/24/outline";
 import GithubIcon from "../assets/GithubIcon.vue";
 import { defineEmits } from "vue";
 
-const asset_endpoint =
-  import.meta.env.VITE_API_URL + import.meta.env.VITE_ASSET_IMAGES_ENDPOINT;
+const apiUrl = import.meta.env.VITE_API_URL || "";
 const delete_project_endpoint =
   import.meta.env.VITE_API_URL + import.meta.env.VITE_DELETE_PROJECT_ENDPOINT;
 

@@ -18,7 +18,7 @@
         :key="imgKey(img, idx)"
         class="min-w-full bg-center bg-cover"
         :style="{
-          backgroundImage: img ? `url(${asset_endpoint}/${img.file_name})` : '',
+          backgroundImage: img ? `url(${imageSource(img)})` : '',
         }"
       ></div>
     </div>
@@ -28,8 +28,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue";
 
-const asset_endpoint =
-  import.meta.env.VITE_API_URL + import.meta.env.VITE_ASSET_IMAGES_ENDPOINT;
+const apiUrl = import.meta.env.VITE_API_URL || "";
 
 const props = defineProps({
   image_urls: {
@@ -128,8 +127,16 @@ watch(
   { deep: true, immediate: false }
 );
 
-// helper for v-for key (prefer file_name, fallback to index)
+// helper for v-for key (prefer id, fallback to file_name, then index)
 function imgKey(img, idx) {
-  return (img && img.file_name) || idx;
+  return (img && img.id) || (img && img.file_name) || idx;
+}
+
+// resolve the image URL (prefer the backend-provided url, fallback to file_name for backward compat)
+function imageSource(img) {
+  if (!img) return "";
+  if (img.url) return apiUrl + img.url;
+  if (img.file_name) return apiUrl + "/assets/images/" + img.file_name;
+  return "";
 }
 </script>
