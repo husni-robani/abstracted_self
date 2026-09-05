@@ -37,10 +37,31 @@ import Project from "./partials/Project.vue";
 import Experiences from "./partials/Experiences.vue";
 import ByteNotes from "./partials/ByteNotes.vue";
 
-const loading = ref(true);
-const showText = ref(true);
+function getInitialPreloaderState() {
+  try {
+    if (
+      typeof window !== "undefined" &&
+      sessionStorage.getItem("profile_preloader_shown")
+    ) {
+      return { loading: false, showText: false };
+    }
+  } catch {}
+  return { loading: true, showText: true };
+}
+const { loading: initLoading, showText: initShowText } =
+  getInitialPreloaderState();
+const loading = ref(initLoading);
+const showText = ref(initShowText);
 
 onMounted(() => {
+  if (!loading.value) return;
+
+  // Mark as shown immediately (before timers) so quick back-navigation within
+  // 0-1s still skips the overlay on the next visit.
+  try {
+    sessionStorage.setItem("profile_preloader_shown", "1");
+  } catch {}
+
   // Step 1: Fade out the pulsing text
   setTimeout(() => {
     showText.value = false;

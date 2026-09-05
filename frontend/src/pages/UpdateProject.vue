@@ -56,7 +56,13 @@
               <ImageDelete
                 v-for="(img, index) in previewImages"
                 :key="index"
-                :src="get_image_endpoint + '/' + img.file_name"
+                :src="
+                  img.url
+                    ? apiUrl + img.url
+                    : img.file_name
+                    ? apiUrl + '/assets/images/' + img.file_name
+                    : ''
+                "
                 @delete="deleteImage(img.id)"
               />
             </div>
@@ -145,8 +151,7 @@ const get_project_id_endpoint =
   import.meta.env.VITE_GET_PROJECT_BY_ID_ENDPOINT;
 const update_project_endpoint =
   import.meta.env.VITE_API_URL + import.meta.env.VITE_UPDATE_PROJECT_ENDPOINT;
-const get_image_endpoint =
-  import.meta.env.VITE_API_URL + import.meta.env.VITE_ASSET_IMAGES_ENDPOINT;
+const apiUrl = import.meta.env.VITE_API_URL || "";
 
 const project = reactive({
   name: "",

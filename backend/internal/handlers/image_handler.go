@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
@@ -67,7 +68,7 @@ func (handler ImageHandler) GetImage(c *gin.Context) {
 	}
 
 	cwd, _ := os.Getwd()
-	fullPath := filepath.Join(cwd, os.Getenv("IMAGES_STORAGE_PATH"), image.FileName)
+	fullPath := filepath.Join(cwd, strings.TrimPrefix(os.Getenv("IMAGES_STORAGE_PATH"), "/"), image.FileName)
 	if _, err := os.Stat(fullPath); err != nil {
 		logger.Error.Printf("image file not found: %v", fullPath)
 		response.Error(c, http.StatusNotFound, "File Not Found", nil)

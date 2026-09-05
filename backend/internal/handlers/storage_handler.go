@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
@@ -22,7 +23,7 @@ func NewStorageHandler() (StorageHandler) {
 func (StorageHandler) GetDocuments(c *gin.Context) {
 	cwd, _ := os.Getwd()
 	file_name := c.Param("file_name")
-	full_path := filepath.Join(cwd, os.Getenv("DOCUMENTS_STORAGE_PATH"), file_name)	
+	full_path := filepath.Join(cwd, strings.TrimPrefix(os.Getenv("DOCUMENTS_STORAGE_PATH"), "/"), file_name)	
 
 	// Get file info
 	_, err := os.Stat(full_path)
@@ -38,7 +39,7 @@ func (StorageHandler) GetDocuments(c *gin.Context) {
 func (StorageHandler) GetIcons(c *gin.Context) {
 	cwd, _ := os.Getwd()
 	file_name := c.Param("file_name")
-	full_path := filepath.Join(cwd, os.Getenv("ICONS_STORAGE_PATH"), file_name)
+	full_path := filepath.Join(cwd, strings.TrimPrefix(os.Getenv("ICONS_STORAGE_PATH"), "/"), file_name)
 
 	// Get file info
 	_, err := os.Stat(full_path)
