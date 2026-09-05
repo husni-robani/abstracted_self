@@ -29,10 +29,10 @@
     <!-- Left: Menu Links (desktop only) -->
     <div class="hidden md:flex gap-8">
       <a
-        href="#about"
+        @click.prevent="goToSection('about')"
         :class="[
-          'font-medium transition-colors duration-200',
-          activeSection === 'about'
+          'font-medium transition-colors duration-200 cursor-pointer',
+          !isBlogPage && activeSection === 'about'
             ? 'text-gray-500'
             : 'text-gray-300 hover:text-gray-900',
         ]"
@@ -40,10 +40,10 @@
         About
       </a>
       <a
-        href="#experiences"
+        @click.prevent="goToSection('experiences')"
         :class="[
-          'font-medium transition-colors duration-200',
-          activeSection === 'experiences'
+          'font-medium transition-colors duration-200 cursor-pointer',
+          !isBlogPage && activeSection === 'experiences'
             ? 'text-gray-500'
             : 'text-gray-300 hover:text-gray-900',
         ]"
@@ -51,10 +51,10 @@
         Experiences
       </a>
       <a
-        href="#projects"
+        @click.prevent="goToSection('projects')"
         :class="[
-          'font-medium transition-colors duration-200',
-          activeSection === 'projects'
+          'font-medium transition-colors duration-200 cursor-pointer',
+          !isBlogPage && activeSection === 'projects'
             ? 'text-gray-500'
             : 'text-gray-300 hover:text-gray-900',
         ]"
@@ -62,10 +62,10 @@
         Projects
       </a>
       <a
-        href="#bytenotes"
+        @click.prevent="goToSection('bytenotes')"
         :class="[
-          'font-medium transition-colors duration-200',
-          activeSection === 'bytenotes'
+          'font-medium transition-colors duration-200 cursor-pointer',
+          isBlogPage || activeSection === 'bytenotes'
             ? 'text-gray-500'
             : 'text-gray-300 hover:text-gray-900',
         ]"
@@ -73,10 +73,10 @@
         ByteNotes
       </a>
       <a
-        href="#contact"
+        @click.prevent="goToSection('contact')"
         :class="[
-          'font-medium transition-colors duration-200',
-          activeSection === 'contact'
+          'font-medium transition-colors duration-200 cursor-pointer',
+          !isBlogPage && activeSection === 'contact'
             ? 'text-gray-500'
             : 'text-gray-300 hover:text-gray-900',
         ]"
@@ -134,11 +134,61 @@
 
     <!-- Sidebar Links -->
     <div class="flex flex-col gap-6 p-6">
-      <a href="#about" @click="closeSidebar">About</a>
-      <a href="#experiences" @click="closeSidebar">Experiences</a>
-      <a href="#projects" @click="closeSidebar">Projects</a>
-      <a href="#bytenotes" @click="closeSidebar">ByteNotes</a>
-      <a href="#contact" @click="closeSidebar">Contact</a>
+      <a
+        @click.prevent="goToSection('about')"
+        :class="[
+          'font-medium transition-colors duration-200 cursor-pointer',
+          !isBlogPage && activeSection === 'about'
+            ? 'text-gray-500'
+            : 'text-gray-300 hover:text-gray-900',
+        ]"
+      >
+        About
+      </a>
+      <a
+        @click.prevent="goToSection('experiences')"
+        :class="[
+          'font-medium transition-colors duration-200 cursor-pointer',
+          !isBlogPage && activeSection === 'experiences'
+            ? 'text-gray-500'
+            : 'text-gray-300 hover:text-gray-900',
+        ]"
+      >
+        Experiences
+      </a>
+      <a
+        @click.prevent="goToSection('projects')"
+        :class="[
+          'font-medium transition-colors duration-200 cursor-pointer',
+          !isBlogPage && activeSection === 'projects'
+            ? 'text-gray-500'
+            : 'text-gray-300 hover:text-gray-900',
+        ]"
+      >
+        Projects
+      </a>
+      <a
+        @click.prevent="goToSection('bytenotes')"
+        :class="[
+          'font-medium transition-colors duration-200 cursor-pointer',
+          isBlogPage || activeSection === 'bytenotes'
+            ? 'text-gray-500'
+            : 'text-gray-300 hover:text-gray-900',
+        ]"
+      >
+        ByteNotes
+      </a>
+      <a
+        @click.prevent="goToSection('contact')"
+        :class="[
+          'font-medium transition-colors duration-200 cursor-pointer',
+          !isBlogPage && activeSection === 'contact'
+            ? 'text-gray-500'
+            : 'text-gray-300 hover:text-gray-900',
+        ]"
+      >
+        Contact
+      </a>
 
       <!-- Resume (mobile sidebar) -->
       <a
@@ -161,14 +211,19 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref } from "vue";
+import { onMounted, onBeforeUnmount, ref, computed, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+
+const route = useRoute();
+const router = useRouter();
+const isBlogPage = computed(() => route.path.startsWith("/blog"));
 
 const asset_document_endpoint =
   import.meta.env.VITE_API_URL + import.meta.env.VITE_ASSET_DOCUMENTS_ENDPOINT;
 const api_endpoint =
   import.meta.env.VITE_API_URL + import.meta.env.VITE_GET_PROFILEDATA_ENDPOINT;
 
-const sectionIds = ["about", "projects", "contact"];
+const sectionIds = ["about", "experiences", "projects", "bytenotes", "contact"];
 const activeSection = ref("");
 const resume_file_name = ref("");
 const isHidden = ref(false);
@@ -186,29 +241,47 @@ function closeSidebar() {
   document.body.classList.remove("overflow-hidden"); // re-enable scroll
 }
 
+function goToSection(id) {
+  closeSidebar();
+  if (route.path !== "/") {
+    router.push({ path: "/", hash: `#${id}` });
+  } else {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    history.replaceState(null, "", `#${id}`);
+  }
+}
+
 function updateActiveSection() {
   const scrollPosition = window.scrollY + 100;
   for (let id of sectionIds) {
     const el = document.getElementById(id);
-    if (el) {
-      const sectionTop = el.offsetTop;
-      const sectionBottom = sectionTop + el.offsetHeight;
-      if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
-        activeSection.value = id;
-        break;
-      }
+    if (!el) continue;
+    const sectionTop = el.offsetTop;
+    const sectionBottom = sectionTop + el.offsetHeight;
+    if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
+      activeSection.value = id;
+      break;
     }
   }
 }
 
 onMounted(() => {
   window.addEventListener("scroll", updateActiveSection);
+  if (isBlogPage.value) activeSection.value = "bytenotes";
   updateActiveSection();
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener("scroll", updateActiveSection);
 });
+
+watch(
+  () => route.path,
+  () => {
+    if (isBlogPage.value) activeSection.value = "bytenotes";
+    else updateActiveSection();
+  }
+);
 
 onMounted(async () => {
   try {
