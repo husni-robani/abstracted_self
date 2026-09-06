@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Go build & vet
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            **/go.sum
+          key: go-${{ runner.os }}-${{ hashFiles('go.mod') }}
+          restore-keys: |
+            go-${{ runner.os }}-
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: go build
+        run: go build -mod=mod ./...
+
+      - name: Dockerfile dry-run
+        run: docker build --dry-run ./backend
+
+  frontend:
+    name: Node build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            **/node_modules
+          key: node-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            node-${{ runner.os }}-
+
+      - name: npm ci
+        run: npm ci
+
+      - name: npm run build
+        run: npm run build -- --mode docker
+
+      - name: Dockerfile dry-run
+        run: docker build --dry-run ./frontend
+
+  docker-dry-run:
+    name: Build Dockerfiles locally
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend Dockerfile
+        run: docker build -t test-backend ./backend
+
+      - name: Build frontend Dockerfile
+        run: docker build -t test-frontend ./frontend
