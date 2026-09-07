@@ -20,10 +20,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Write prod env files from secrets
+        run: |
+          printf '%s' "${{ secrets.ENV_DOCKER_PROD }}" > backend/.env.docker
+          printf '%s' "${{ secrets.ENV_ACCESS_PROD }}" > backend/.env.access_credentials
+
       - name: Build & start compose
         run: |
-          docker compose build
-          docker compose up -d --wait
+          docker compose -f docker-compose.prod.yml build
+          docker compose -f docker-compose.prod.yml up -d --wait
 
       - name: Healthcheck
         id: health
@@ -43,5 +48,5 @@ jobs:
           if [ "${{ steps.health.outputs.healthy }}" = "true" ]; then
             echo "✅ Deploy ${{ env.TAG }} successful"
           else
-            echo "⚠️ Deploy ${{ env.TAG }} unhealthy — SSH into VPS and run: docker compose down && docker compose up -d"
+            echo "⚠️ Deploy ${{ env.TAG }} unhealthy — SSH into VPS and run: docker compose -f docker-compose.prod.yml down && docker compose -f docker-compose.prod.yml up -d"
           fi
