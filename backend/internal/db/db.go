@@ -11,7 +11,7 @@ import (
 )
 
 func Connect(cfg *config.Config) (*sql.DB, error) {
-	connStr := fmt.Sprintf("user=%s dbname=%s host=%s port=%s sslmode=disable password=%s", cfg.DBUser, cfg.DBName, cfg.DBHost, cfg.DBPort, cfg.DBPassword)
+	connStr := fmt.Sprintf("user=%s dbname=%s host=%s port=%s sslmode=%s password=%s", cfg.DBUser, cfg.DBName, cfg.DBHost, cfg.DBPort, cfg.SSL, cfg.DBPassword)
 
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {

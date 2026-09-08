@@ -16,13 +16,15 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 	router.Use(auth.DefaultCorsConfig())
 
 	// health probe for Docker / CI smoke tests (public, no auth, no business logic)
-	router.GET("/healthz", func(c *gin.Context) {
+	healthHandler := func(c *gin.Context) {
 		if err := db.Ping(); err != nil {
 			c.JSON(503, gin.H{"status": "down"})
 			return
 		}
 		c.JSON(200, gin.H{"status": "ok"})
-	})
+	}
+	router.GET("/healthz", healthHandler)
+	router.HEAD("/healthz", healthHandler)
 
 	// public router
 	router.POST("/auth/login", handler.AuthHandler.Login)
