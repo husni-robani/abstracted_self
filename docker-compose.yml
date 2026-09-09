@@ -22,7 +22,7 @@ services:
     image: ghcr.io/husni-robani/abstracted_self-backend:${TAG:-latest}
     build: ./backend
     ports:
-      - "8080:8080"
+      - "8080:8080" # Only for developement, in order to backend API can accessed through localhost directly
     environment:
       - RUNNING_IN_DOCKER=true
     env_file:

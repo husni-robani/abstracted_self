@@ -22,8 +22,8 @@ services:
   backend:
     image: ghcr.io/husni-robani/abstracted_self-backend:${TAG:-latest}
     build: ./backend
-    ports:
-      - "8080:8080"
+    # ports: | has no ports that listen to the host, it since frontend-backend 
+    # communication happened through docker network, so it doesn't need any ports that listen to the host
     environment:
       - RUNNING_IN_DOCKER=true
     env_file:
