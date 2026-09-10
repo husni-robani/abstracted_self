@@ -7,17 +7,21 @@ services:
         VITE_API_URL: ${VITE_API_URL:-/api}
     ports:
       - "80:80"
-      - "443:80"
+      - "443:443"
     restart: unless-stopped
     depends_on:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1/"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "--no-check-certificate", "https://127.0.0.1/"]
       interval: 30s
       timeout: 3s
       retries: 3
       start_period: 10s
+    volumes:
+    # TLS/SSL certificate and private-key in production server
+      - /etc/nginx/certs/cloudflare-husnirb_dev-tls-certificate.pem:/etc/nginx/certs/fullchain.pem:ro
+      - /etc/nginx/certs/cloudflare-husnirb_dev-private-key.pem:/etc/nginx/certs/privkey.pem:ro
 
   backend:
     image: ghcr.io/husni-robani/abstracted_self-backend:${TAG:-latest}
