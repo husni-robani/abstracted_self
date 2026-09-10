@@ -80,6 +80,11 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 		authorizedRouter.DELETE("/projects/:id", handler.ProjectHandler.DeleteProject)
 		authorizedRouter.PUT("projects/:id", handler.ProjectHandler.UpdateProject)
 
+		authorizedRouter.GET("/daily_visits/counts", handler.DailyVisitHandler.GetDailyVisitCounts)
+		authorizedRouter.GET("/daily_visits", handler.DailyVisitHandler.GetDailyVisits)
+
+		authorizedRouter.GET("/profile/resume_status", handler.ProfileHandler.GetResumeStatus)
+
 		authorizedRouter.PUT("/profile", handler.ProfileHandler.UpdateProfile)
 		authorizedRouter.POST("/profile/skill_types", handler.ProfileHandler.AddSkillType)
 		authorizedRouter.POST("/profile/skills", handler.ProfileHandler.AddSkill)

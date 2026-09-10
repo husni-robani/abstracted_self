@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"slices"
+	"time"
 
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
 	"github.com/husni-robani/abstracted_self/backend/internal/models"
@@ -45,6 +46,16 @@ func (ProfileRepository) WriteProfileData(newProfile models.Profile) (error) {
 		return errors.New("failed to write profile data")
 	}
 	return nil
+}
+
+func (ProfileRepository) StatProfileFile() (time.Time, error) {
+	info, err := os.Stat(os.Getenv("PROFILE_DB_PATH"))
+	if err != nil {
+		logger.Error.Printf("failed to stat profile file: %v", err)
+		return time.Time{}, err
+	}
+
+	return info.ModTime(), nil
 }
 
 func (repo ProfileRepository) GetAllSkillTypeName() ([]string, error) {

@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
@@ -133,4 +134,48 @@ func ValidateStruct(structInstance any) (map[string]string, error) {
 	}
 
 	return invalidFields, nil
+}
+
+const (
+	DefaultPage  = 1
+	DefaultLimit = 10
+	MaxLimit     = 100
+)
+
+func NormalizePagination(page, limit int) (int, int) {
+	if page < 1 {
+		page = DefaultPage
+	}
+	if limit < 1 {
+		limit = DefaultLimit
+	}
+	if limit > MaxLimit {
+		limit = MaxLimit
+	}
+	return page, limit
+}
+
+const MaxDateRangeDays = 366
+
+func ValidateDateRange(start, end string) error {
+	startDate, err := time.Parse("2006-01-02", start)
+	if err != nil {
+		return fmt.Errorf("invalid start_date format")
+	}
+
+	endDate, err := time.Parse("2006-01-02", end)
+	if err != nil {
+		return fmt.Errorf("invalid end_date format")
+	}
+
+	if startDate.After(endDate) {
+		return fmt.Errorf("start_date must be before or equal to end_date")
+	}
+
+	inclusiveDays := int(endDate.Sub(startDate).Hours()/24) + 1
+	if inclusiveDays > MaxDateRangeDays {
+		return fmt.Errorf("date range must not exceed %d days", MaxDateRangeDays)
+	}
+
+	return nil
 }

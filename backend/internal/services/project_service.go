@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 
@@ -60,13 +61,25 @@ func (service ProjectService) CreateNewProject(project_data requests.CreateProje
 	return nil
 }
 
-func (service ProjectService) GetAllProjectsWithImages() ([]models.Project, error){
-	projects, err := service.projectRepo.GetAllProjectsWithImages()
+func (service ProjectService) GetProjects(page, limit int) ([]models.Project, models.Pagination, error) {
+	projects, total, err := service.projectRepo.GetProjectsPaginated(page, limit)
 	if err != nil {
-		return nil, err
+		return nil, models.Pagination{}, err
 	}
 
-	return projects, nil
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
+	if totalPages < 1 {
+		totalPages = 1
+	}
+
+	pagination := models.Pagination{
+		Page:       page,
+		Limit:      limit,
+		Total:      total,
+		TotalPages: totalPages,
+	}
+
+	return projects, pagination, nil
 }
 
 func (service ProjectService) GetProjectById(id int) (models.Project, error) {
