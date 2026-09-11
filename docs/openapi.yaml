@@ -934,13 +934,17 @@ paths:
       tags: [Daily Visits]
       summary: Record a profile visit
       security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/VisitRequest"
+      parameters:
+        - name: visitor_identifier
+          in: cookie
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Visitor identifier set by the frontend, valid for 12 hours.
       responses:
+        "200":
+          $ref: "#/components/responses/NoDataSuccess"
         "201":
           $ref: "#/components/responses/NoDataSuccess"
         "400":
@@ -1322,11 +1326,4 @@ components:
       required: [type_name]
       properties:
         type_name:
-          type: string
-
-    VisitRequest:
-      type: object
-      required: [uuid]
-      properties:
-        uuid:
           type: string
