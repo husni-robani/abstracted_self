@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -303,4 +304,35 @@ func (handler ProfileHandler) ToggleIsMostUsed(c *gin.Context){
 	}
 
 	response.Success(c, http.StatusOK, "toggle skill most used successful", nil)	
+}
+
+func (handler ProfileHandler) GetResumeStatus(c *gin.Context) {
+	isUploaded, fileName, err := handler.Service.GetResumeStatus()
+	if err != nil {
+		logger.Error.Printf("Failed to get resume status: %v", err)
+		response.Error(c, http.StatusInternalServerError, "Failed to get resume status", nil)
+		return
+	}
+
+	if modTime, err := handler.Service.GetProfileModTime(); err == nil {
+		etag := fmt.Sprintf(`"%d-%d"`, modTime.Unix(), modTime.Nanosecond())
+		c.Header("ETag", etag)
+		c.Header("Last-Modified", modTime.UTC().Format(http.TimeFormat))
+		c.Header("Cache-Control", "private, max-age=3600")
+
+		if c.GetHeader("If-None-Match") == etag {
+			c.Status(http.StatusNotModified)
+			return
+		}
+	}
+
+	data := struct {
+		IsUploaded     bool   `json:"is_uploaded"`
+		ResumeFileName string `json:"resume_file_name,omitempty"`
+	}{
+		IsUploaded:     isUploaded,
+		ResumeFileName: fileName,
+	}
+
+	response.Success(c, http.StatusOK, "get resume status successful", data)
 }

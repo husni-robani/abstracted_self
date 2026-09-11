@@ -1,6 +1,7 @@
 package services
 
 import (
+	"math"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -32,4 +33,35 @@ func (service DailyVisitService) ProfileVisitor(visitReq requests.VisitRequest, 
 	}
 
 	return nil
+}
+
+func (service DailyVisitService) GetDailyVisitCounts(startDate, endDate string) ([]models.DailyVisitCount, error) {
+	counts, err := service.repo.GetDailyVisitCounts(startDate, endDate)
+	if err != nil {
+		return nil, err
+	}
+
+	return counts, nil
+}
+
+func (service DailyVisitService) GetDailyVisits(startDate, endDate string, page, limit int) ([]models.DailyVisit, models.Pagination, error) {
+	total, err := service.repo.CountDailyVisits(startDate, endDate)
+	if err != nil {
+		return nil, models.Pagination{}, err
+	}
+
+	offset := (page - 1) * limit
+	visits, err := service.repo.GetDailyVisits(startDate, endDate, limit, offset)
+	if err != nil {
+		return nil, models.Pagination{}, err
+	}
+
+	pagination := models.Pagination{
+		Page:       page,
+		Limit:      limit,
+		Total:      total,
+		TotalPages: int(math.Ceil(float64(total) / float64(limit))),
+	}
+
+	return visits, pagination, nil
 }

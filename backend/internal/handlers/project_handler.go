@@ -62,20 +62,32 @@ func (handler ProjectHandler) CreateProject(c *gin.Context) {
 }
 
 func (handler ProjectHandler) GetProjects(c *gin.Context) {
-	projects, err := handler.service.GetAllProjectsWithImages()
+	var query requests.ProjectsQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		logger.Error.Printf("failed bind query string: %v", err)
+		response.Error(c, http.StatusBadRequest, "query is not accepted", err)
+		return
+	}
+
+	page, limit := utils.NormalizePagination(query.Page, query.Limit)
+
+	projects, pagination, err := handler.service.GetProjects(page, limit)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "internal server error", nil)
 		return
 	}
 
-	isCache := c.Request.URL.Query().Get("cache") == "true"
-
 	c.Header("Content-Type", "application/json")
-	if isCache {
+	if query.Cache {
 		c.Header("Cache-Control", "public, max-age=86400")
 	}
 
-	response.Success(c, http.StatusOK, "get projects successful", projects)
+	data := gin.H{
+		"projects":   projects,
+		"pagination": pagination,
+	}
+
+	response.Success(c, http.StatusOK, "get projects successful", data)
 }
 
 func (handler ProjectHandler) GetProjectById(c *gin.Context) {

@@ -21,59 +21,38 @@
         </div>
       </div>
 
-      <!-- Two-column section -->
-      <div class="grid md:grid-cols-2 gap-6">
-        <!-- Recent Projects -->
-        <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
-          <div class="px-4 py-3 border-b border-gray-200">
-            <h2 class="text-lg font-mono font-bold text-gray-900">
-              Recent Projects
-            </h2>
-          </div>
-          <ul class="divide-y divide-gray-200">
-            <li
-              v-for="project in recentProjects"
-              :key="project.id"
-              class="px-4 py-3 hover:bg-gray-50"
-            >
-              <div class="flex justify-between items-center">
-                <div>
-                  <div class="font-mono font-semibold text-gray-900">
-                    {{ project.name }}
-                  </div>
-                  <div class="text-sm text-gray-500">
-                    {{ project.tech.join(", ") }}
-                  </div>
+      <!-- Recent Projects -->
+      <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
+        <div class="px-4 py-3 border-b border-gray-200">
+          <h2 class="text-lg font-mono font-bold text-gray-900">
+            Recent Projects
+          </h2>
+        </div>
+        <ul class="divide-y divide-gray-200">
+          <li
+            v-for="project in recentProjects"
+            :key="project.id"
+            class="px-4 py-3 hover:bg-gray-50"
+          >
+            <div class="flex justify-between items-center">
+              <div>
+                <div class="font-mono font-semibold text-gray-900">
+                  {{ project.name }}
                 </div>
-                <a
-                  :href="project.url"
-                  target="_blank"
-                  class="text-sm text-gray-500 hover:text-gray-900 font-mono"
-                >
-                  View
-                </a>
+                <div class="text-sm text-gray-500">
+                  {{ (project.tech_stack || []).join(", ") }}
+                </div>
               </div>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Recent Activities -->
-        <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
-          <div class="px-4 py-3 border-b border-gray-200">
-            <h2 class="text-lg font-mono font-bold text-gray-900">
-              Recent Activities
-            </h2>
-          </div>
-          <ul class="divide-y divide-gray-200">
-            <li
-              v-for="(activity, index) in activities"
-              :key="index"
-              class="px-4 py-3 text-sm font-mono text-gray-700"
-            >
-              {{ activity }}
-            </li>
-          </ul>
-        </div>
+              <a
+                :href="project.project_url"
+                target="_blank"
+                class="text-sm text-gray-500 hover:text-gray-900 font-mono"
+              >
+                View
+              </a>
+            </div>
+          </li>
+        </ul>
       </div>
     </div>
   </AdminLayout>
@@ -81,24 +60,135 @@
 
 <script setup>
 import AdminLayout from "../layouts/AdminLayout.vue";
+import { ref, computed, onMounted } from "vue";
 
-const stats = [
-  { label: "Total Projects", value: 12 },
-  { label: "Visitors", value: 18 },
-  { label: "Skills", value: 10 },
-  { label: "Resume", value: "Uploaded" },
-];
+const projects_endpoint =
+  import.meta.env.VITE_API_URL + import.meta.env.VITE_GET_PROJECTS_ENDPOINT;
+const daily_visits_counts_endpoint =
+  import.meta.env.VITE_API_URL +
+  import.meta.env.VITE_GET_DAILY_VISITS_COUNTS_ENDPOINT;
+const resume_status_endpoint =
+  import.meta.env.VITE_API_URL + import.meta.env.VITE_RESUME_STATUS_ENDPOINT;
+const profile_endpoint =
+  import.meta.env.VITE_API_URL + import.meta.env.VITE_GET_PROFILEDATA_ENDPOINT;
 
-const recentProjects = [
-  { id: 1, name: "Portfolio Website", tech: ["Vue", "Tailwind"], url: "#" },
-  { id: 2, name: "E-commerce App", tech: ["Nuxt", "Supabase"], url: "#" },
-  { id: 3, name: "Admin Dashboard", tech: ["Vue", "Go"], url: "#" },
-];
+const token = localStorage.getItem("token");
 
-const activities = [
-  "Updated profile bio",
-  'Added a new project "Portfolio Website"',
-  "Updated skills: Vue, Tailwind",
-  "Uploaded a new resume",
-];
+const totalProjects = ref(0);
+const visitors = ref(0);
+const skills = ref(0);
+const resumeStatus = ref("Not Uploaded");
+const recentProjects = ref([]);
+
+const stats = computed(() => [
+  { label: "Total Projects", value: totalProjects.value },
+  { label: "Visitors", value: visitors.value },
+  { label: "Skills", value: skills.value },
+  { label: "Resume", value: resumeStatus.value },
+]);
+
+function formatDate(d) {
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${month}-${day}`;
+}
+
+async function getTotalProjects() {
+  try {
+    const res = await fetch(projects_endpoint + "?limit=1");
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch total projects. Status: ${res.status}`);
+    }
+
+    const json = await res.json();
+    totalProjects.value = json.data.pagination.total;
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function getRecentProjects() {
+  try {
+    const res = await fetch(projects_endpoint + "?limit=5");
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch recent projects. Status: ${res.status}`);
+    }
+
+    const json = await res.json();
+    recentProjects.value = json.data.projects;
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function getVisitors() {
+  try {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 30);
+
+    const query = `?start_date=${formatDate(start)}&end_date=${formatDate(end)}`;
+    const res = await fetch(daily_visits_counts_endpoint + query, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch visitors. Status: ${res.status}`);
+    }
+
+    const json = await res.json();
+    visitors.value = json.data.reduce((acc, d) => acc + d.count, 0);
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function getSkills() {
+  try {
+    const res = await fetch(profile_endpoint + "?skill_set=true");
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch skills. Status: ${res.status}`);
+    }
+
+    const json = await res.json();
+    skills.value = json.data.skill_set.reduce(
+      (acc, type) => acc + type.skill_items.length,
+      0
+    );
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function getResumeStatus() {
+  try {
+    const res = await fetch(resume_status_endpoint, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch resume status. Status: ${res.status}`);
+    }
+
+    const json = await res.json();
+    resumeStatus.value = json.data.is_uploaded ? "Uploaded" : "Not Uploaded";
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+onMounted(() => {
+  getTotalProjects();
+  getRecentProjects();
+  getVisitors();
+  getSkills();
+  getResumeStatus();
+});
 </script>

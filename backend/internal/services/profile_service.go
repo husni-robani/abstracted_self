@@ -4,6 +4,7 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
@@ -63,6 +64,23 @@ func (service ProfileService) GetProfileData(name bool, summary bool, bio bool, 
 
 
 	return dataResult, nil
+}
+
+func (service ProfileService) GetResumeStatus() (bool, string, error) {
+	profileData, err := service.Repository.ReadProfileData()
+	if err != nil {
+		return false, "", err
+	}
+
+	if profileData.ResumeFileName == "" {
+		return false, "", nil
+	}
+
+	return true, profileData.ResumeFileName, nil
+}
+
+func (service ProfileService) GetProfileModTime() (time.Time, error) {
+	return service.Repository.StatProfileFile()
 }
 
 func (service ProfileService) UpdateProfileData(dataRequest requests.UpdateProfileRequest) (error) {
