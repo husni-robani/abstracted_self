@@ -216,7 +216,7 @@ async function getProjects() {
 
     const fetchedData = await response.json();
 
-    Object.assign(projects, fetchedData.data);
+    Object.assign(projects, fetchedData.data.projects);
   } catch (e) {
     console.error("Failed to fetch projects:", e);
   }
