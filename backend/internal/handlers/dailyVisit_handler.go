@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
 	"github.com/husni-robani/abstracted_self/backend/internal/logger"
 	"github.com/husni-robani/abstracted_self/backend/internal/response"
@@ -22,30 +23,27 @@ func NewDailyVisitHandler(service services.DailyVisitService) DailyVisitHandler 
 }
 
 func (handler DailyVisitHandler) ProfileVisitor(c *gin.Context) {
-	var visitRequest requests.VisitRequest
-
-	if err := c.ShouldBind(&visitRequest); err != nil {
-		logger.Error.Printf("Failed to bind request body: %v", err)
-		response.Error(c, http.StatusInternalServerError, "failed to bind request", nil)
+	identifier, err := c.Cookie("visitor_identifier")
+	if err != nil || identifier == "" {
+		response.Error(c, http.StatusBadRequest, "visitor_identifier cookie is required", nil)
 		return
 	}
-	
-	invalidFields, err := utils.ValidateStruct(visitRequest)
+
+	if _, err := uuid.Parse(identifier); err != nil {
+		logger.Info.Printf("Invalid visitor identifier: %v", err)
+		response.Error(c, http.StatusBadRequest, "invalid visitor_identifier", nil)
+		return
+	}
+
+	created, err := handler.service.ProfileVisitor(identifier, c)
 	if err != nil {
-		logger.Error.Printf("Request validation failed: %v", err)
-		response.Error(c, http.StatusInternalServerError, "Validation failed", nil)
-		return
-	}
-
-	if len(invalidFields) >= 1 {
-		logger.Info.Printf("Invalid field: %#v", invalidFields)
-		response.Error(c, http.StatusBadRequest, "Invalid Request", invalidFields)
-		return
-	}
-
-
-	if err = handler.service.ProfileVisitor(visitRequest, c); err != nil {
+		logger.Error.Printf("Failed to record profile visit: %v", err)
 		response.Error(c, http.StatusInternalServerError, "Internal Server Error", nil)
+		return
+	}
+
+	if !created {
+		response.Success(c, http.StatusOK, "visitor already recorded", nil)
 		return
 	}
 
