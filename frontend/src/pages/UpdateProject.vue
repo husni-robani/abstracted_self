@@ -185,7 +185,7 @@ watch(
   () => project.images,
   (updatedImages) => {
     if (!updatedImages || updatedImages.length === 0) {
-      previewImages = [];
+      previewImages.value = [];
       return;
     }
 
