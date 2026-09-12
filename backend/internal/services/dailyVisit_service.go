@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/husni-robani/abstracted_self/backend/internal/dto/requests"
 	"github.com/husni-robani/abstracted_self/backend/internal/models"
 	"github.com/husni-robani/abstracted_self/backend/internal/repositories"
 )
@@ -20,19 +19,28 @@ func NewDailyVisitService(repo repositories.DailyVisitRepository) DailyVisitServ
 	}
 }
 
-func (service DailyVisitService) ProfileVisitor(visitReq requests.VisitRequest, c *gin.Context) error {
+func (service DailyVisitService) ProfileVisitor(identifier string, c *gin.Context) (bool, error) {
+	exists, err := service.repo.IdentifierExists(identifier)
+	if err != nil {
+		return false, err
+	}
+	if exists {
+		return false, nil
+	}
+
 	visit_data := models.DailyVisit{
-		UUID: visitReq.UUID,
+		UUID: identifier,
 		VisitDate: time.Now(),
 		Ip: c.ClientIP(),
 		Device: c.GetHeader("User-Agent"),
 	}
 
-	if err := service.repo.StoreDailyVisit(visit_data); err != nil {
-		return err
+	created, err := service.repo.StoreDailyVisit(visit_data)
+	if err != nil {
+		return false, err
 	}
 
-	return nil
+	return created, nil
 }
 
 func (service DailyVisitService) GetDailyVisitCounts(startDate, endDate string) ([]models.DailyVisitCount, error) {

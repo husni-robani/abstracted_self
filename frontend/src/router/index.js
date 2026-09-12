@@ -7,6 +7,7 @@ import UpdateProject from "../pages/UpdateProject.vue";
 import Dashboard from "../pages/Dashboard.vue";
 import ExperienceManagement from "../pages/ExperienceManagement.vue";
 import BlogManagement from "../pages/BlogManagement.vue";
+import Visitors from "../pages/Visitors.vue";
 import Cookies from "js-cookie";
 import { v4 as uuidv4 } from "uuid";
 
@@ -49,6 +50,12 @@ const routes = [
     name: "Blog",
     meta: { title: "Blog", requiresAuth: true },
     component: BlogManagement,
+  },
+  {
+    path: "/admin/visitors",
+    name: "Visitors",
+    meta: { title: "Visitors", requiresAuth: true },
+    component: Visitors,
   },
   {
     path: "/admin/blog/new",
@@ -99,39 +106,24 @@ router.beforeEach(async (to, from, next) => {
   const token = localStorage.getItem("token");
   const requiresAuth = to.meta.requiresAuth;
 
-  // visitor tracking
+  // visitor tracking — one visit per browser per calendar day.
+  // The backend reads `visitor_identifier` from the COOKIE (not a JSON body)
+  // and dedups server-side, so the cookie must be set BEFORE the request.
   if (to.path == "/") {
-    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-    let visitorId = Cookies.get("visitor_uuid");
-    let lastTracked = Cookies.get("last_visit_date");
-
     const profileVisitEndpoint =
       import.meta.env.VITE_API_URL +
       import.meta.env.VITE_PROFILE_VISIT_ENDPOINT;
 
-    if (!visitorId) {
-      visitorId = uuidv4();
-      Cookies.set("visitor_uuid", visitorId, { expires: 365 });
-    }
+    if (!Cookies.get("visitor_identifier")) {
+      const endOfDay = new Date();
+      endOfDay.setHours(24, 0, 0, 0);
+      Cookies.set("visitor_identifier", uuidv4(), { expires: endOfDay });
 
-    // call backend endpoint to check and store
-    if (lastTracked !== today) {
       try {
-        const res = await fetch(profileVisitEndpoint, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            uuid: visitorId,
-          }),
-        });
-
+        const res = await fetch(profileVisitEndpoint, { method: "POST" });
         if (!res.ok) {
           throw new Error("profile visit request failed");
         }
-
-        Cookies.set("last_visit_date", today, { expires: 1 }); // valid for 1 day
       } catch (e) {
         console.error("tracking failed", e);
       }

@@ -19,21 +19,35 @@ func NewDailyVisitRepository(db *sql.DB) DailyVisitRepository{
 	}
 }
 
-func (repo DailyVisitRepository) StoreDailyVisit(data models.DailyVisit) error {
+func (repo DailyVisitRepository) IdentifierExists(identifier string) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	var exists bool
+	query := "SELECT EXISTS(SELECT 1 FROM daily_visits WHERE uuid = $1)"
+	if err := repo.DB.QueryRowContext(ctx, query, identifier).Scan(&exists); err != nil {
+		logger.Error.Printf("failed to check visitor identifier: %v", err)
+		return false, err
+	}
+
+	return exists, nil
+}
+
+func (repo DailyVisitRepository) StoreDailyVisit(data models.DailyVisit) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30 * time.Second)
 	defer cancel()
 
-	query := "INSERT INTO daily_visits (uuid, visit_date, ip, device) VALUES ($1, $2, $3, $4)"
+	query := "INSERT INTO daily_visits (uuid, visit_date, ip, device) VALUES ($1, $2, $3, $4) ON CONFLICT (uuid, visit_date) DO NOTHING"
 	result, err := repo.DB.ExecContext(ctx, query, &data.UUID, &data.VisitDate, &data.Ip, &data.Device)
 	if err != nil {
 		logger.Error.Printf("Insert daily visit failed: %v", err.Error())
-		return err
+		return false, err
 	}
 
 	rowsAffected, _ := result.RowsAffected()
 	logger.Info.Printf("Insert daily_visits successful | Rows Affected: %d", rowsAffected)
 
-	return nil
+	return rowsAffected == 1, nil
 }
 
 func (repo DailyVisitRepository) GetDailyVisitCounts(startDate, endDate string) ([]models.DailyVisitCount, error) {

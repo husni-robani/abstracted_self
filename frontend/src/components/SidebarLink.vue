@@ -17,6 +17,7 @@ import {
   UserIcon,
   Cog6ToothIcon,
   PencilSquareIcon,
+  ChartBarIcon,
 } from "@heroicons/vue/24/outline";
 import { computed } from "vue";
 import { useRoute } from "vue-router";
@@ -43,6 +44,7 @@ const icons = {
   UserIcon,
   Cog6ToothIcon,
   PencilSquareIcon,
+  ChartBarIcon,
 };
 
 const iconComponent = computed(() => icons[props.icon] || HomeIcon);

@@ -46,6 +46,12 @@
           to="/admin/blog"
           prefix-path="/admin/blog"
         />
+        <SidebarLink
+          icon="ChartBarIcon"
+          text="Visitors"
+          to="/admin/visitors"
+          prefix-path="/admin/visitors"
+        />
       </nav>
     </header>
 
@@ -59,6 +65,7 @@
       <SidebarLink icon="FolderIcon" text="Projects" to="/admin/projects" />
       <SidebarLink icon="FolderIcon" text="Experiences" to="/admin/experiences" />
       <SidebarLink icon="PencilSquareIcon" text="Blog" to="/admin/blog" />
+      <SidebarLink icon="ChartBarIcon" text="Visitors" to="/admin/visitors" />
     </div>
 
     <!-- Page content -->
