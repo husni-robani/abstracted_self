@@ -7,6 +7,7 @@ import UpdateProject from "../pages/UpdateProject.vue";
 import Dashboard from "../pages/Dashboard.vue";
 import ExperienceManagement from "../pages/ExperienceManagement.vue";
 import BlogManagement from "../pages/BlogManagement.vue";
+import Visitors from "../pages/Visitors.vue";
 import Cookies from "js-cookie";
 import { v4 as uuidv4 } from "uuid";
 
@@ -49,6 +50,12 @@ const routes = [
     name: "Blog",
     meta: { title: "Blog", requiresAuth: true },
     component: BlogManagement,
+  },
+  {
+    path: "/admin/visitors",
+    name: "Visitors",
+    meta: { title: "Visitors", requiresAuth: true },
+    component: Visitors,
   },
   {
     path: "/admin/blog/new",
