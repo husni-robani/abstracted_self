@@ -34,7 +34,7 @@ jobs:
         id: health
         run: |
           for i in $(seq 1 12); do
-            if wget -qO- http://127.0.0.1:8080/healthz 2>/dev/null | grep -q ok; then
+            if docker compose -f docker-compose.prod.yml exec -T backend wget -qO- http://127.0.0.1:8080/healthz 2>/dev/null | grep -q ok; then
               echo "healthy=true" >> $GITHUB_OUTPUT
               exit 0
             fi
