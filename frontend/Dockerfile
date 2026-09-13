@@ -4,13 +4,13 @@ WORKDIR /app
 COPY package*.json ./
 
 
-FROM base as development
+FROM base AS development
 RUN npm install
 COPY . .
 CMD ["npm", "run", "dev-docker"]
 
 # build stage: compiles static assets (used by production stage)
-from base as build
+FROM base AS build
 RUN npm ci --no-audit --no-fund
 
 COPY . .
@@ -23,7 +23,7 @@ RUN npm run build -- --mode production
 
 
 # Stage 2: Serve with Nginx
-FROM nginx:1.27.4-alpine3.21 as production
+FROM nginx:1.27.4-alpine3.21 AS production
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 

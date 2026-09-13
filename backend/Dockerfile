@@ -1,5 +1,5 @@
 # ====================================DEVELOPMENT====================================
-FROM golang:1.23-alpine3.21 as development
+FROM golang:1.23-alpine3.21 AS development
 WORKDIR /app
 
 RUN apk add --no-cache wget \
@@ -42,7 +42,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /app/main ./cmd
 
 # Stage 2: Run
-FROM alpine:3.21.3 as production
+FROM alpine:3.21.3 AS production
 WORKDIR /app
 
 RUN apk add --no-cache wget \
