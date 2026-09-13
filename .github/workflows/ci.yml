@@ -42,7 +42,7 @@ jobs:
         run: go build -mod=mod ./...
 
       - name: Dockerfile dry-run
-        run: docker build --dry-run ./backend
+        run: docker build --check ./backend
 
   frontend:
     name: Node build
@@ -72,10 +72,10 @@ jobs:
         run: npm ci
 
       - name: npm run build
-        run: npm run build -- --mode docker
+        run: npm run build -- --mode production
 
       - name: Dockerfile dry-run
-        run: docker build --dry-run ./frontend
+        run: docker build --check ./frontend
 
   docker-dry-run:
     name: Build Dockerfiles locally
