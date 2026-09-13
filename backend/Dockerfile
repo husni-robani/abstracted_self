@@ -20,7 +20,7 @@ RUN go install github.com/air-verse/air@latest
 ENV PATH="/home/appuser/go/bin:$PATH"
 
 EXPOSE 8080
-HEALTHCHECK ... CMD wget ... http://127.0.0.1:8080/healthz || exit 1
+HEALTHCHECK --interval=15s --timeout=3s --retries=5 --start-period=20s CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:8080/healthz || exit 1
 
 CMD ["air"]
 
